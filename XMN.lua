@@ -1,4 +1,4 @@
--- 🎯 ULTRA GOD MENU v5.0 - PERSIAN EDITION (FIXED FLY)
+-- 🎯 MINIMAL MENU v7.0 - ESP & FLY ONLY
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local character = player.Character or player.CharacterAdded:Wait()
@@ -9,30 +9,19 @@ local mouse = player:GetMouse()
 -- Services
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- Variables
 local menuOpen = false
-local autoWalking = false
-local bulletTrackEnabled = false
 local espEnabled = false
-local speedHackEnabled = false
-local godModeEnabled = false
 local flyEnabled = false
 local isMinimized = false
-local originalHealth = humanoid.MaxHealth
-
--- FLY VARIABLES
+local flySpeed = 16
 local FLYING = false
-local ctrl = {f = 0, b = 0, l = 0, r = 0}
-local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-local maxspeed = 50
-local speed = 0
-local bg = nil
-local bv = nil
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "UltraGodMenu"
+screenGui.Name = "MinimalMenu"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
@@ -65,22 +54,23 @@ logoGradient.Parent = logoButton
 local logoIcon = Instance.new("TextLabel")
 logoIcon.Size = UDim2.new(1, 0, 1, 0)
 logoIcon.BackgroundTransparency = 1
-logoIcon.Text = "👑"
+logoIcon.Text = "◈"
 logoIcon.TextScaled = true
 logoIcon.Font = Enum.Font.SourceSansBold
+logoIcon.TextColor3 = Color3.fromRGB(130, 180, 255)
 logoIcon.Parent = logoButton
 
 local logoStroke = Instance.new("UIStroke")
-logoStroke.Color = Color3.fromRGB(255, 215, 0)
+logoStroke.Color = Color3.fromRGB(130, 180, 255)
 logoStroke.Thickness = 2
 logoStroke.Transparency = 0.3
 logoStroke.Parent = logoButton
 
--- Main Menu Frame
+-- Main Menu Frame (Smaller size for only 2 options)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 520, 0, 450)
-mainFrame.Position = UDim2.new(0.5, -260, 0.5, -225)
+mainFrame.Size = UDim2.new(0, 450, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
@@ -136,8 +126,8 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0, 20, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "👑 منوی گاد | GOD MENU"
-title.TextColor3 = Color3.fromRGB(255, 215, 0)
+title.Text = "MINIMAL MENU"
+title.TextColor3 = Color3.fromRGB(130, 180, 255)
 title.TextSize = 20
 title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -182,30 +172,29 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
 
--- Content Container
-local content = Instance.new("ScrollingFrame")
+-- Content Container (No scroll needed for 2 items)
+local content = Instance.new("Frame")
 content.Name = "Content"
 content.Size = UDim2.new(1, -20, 1, -60)
 content.Position = UDim2.new(0, 10, 0, 55)
 content.BackgroundTransparency = 1
 content.BorderSizePixel = 0
-content.ScrollBarThickness = 4
-content.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
-content.ScrollBarImageTransparency = 0.5
-content.CanvasSize = UDim2.new(0, 0, 0, 800)
 content.Parent = mainFrame
 
+-- Functions
+local function createTween(obj, props, duration)
+    local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    return TweenService:Create(obj, info, props)
+end
+
 -- Helper function to create feature cards
-local cardY = 10
-local function createFeatureCard(icon, titleText, descText, toggleFunc)
+local function createFeatureCard(position, icon, titleText, descText, toggleFunc)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, -10, 0, 100)
-    card.Position = UDim2.new(0, 5, 0, cardY)
+    card.Position = UDim2.new(0, 5, 0, position)
     card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
     card.BorderSizePixel = 0
     card.Parent = content
-    
-    cardY = cardY + 110
     
     local cardCorner = Instance.new("UICorner")
     cardCorner.CornerRadius = UDim.new(0, 8)
@@ -276,7 +265,7 @@ local function createFeatureCard(icon, titleText, descText, toggleFunc)
     toggle.MouseButton1Click:Connect(function()
         local enabled = toggleFunc()
         if enabled then
-            toggle.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+            toggle.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
             createTween(toggleCircle, {Position = UDim2.new(1, -27, 0.5, -12)}, 0.2):Play()
         else
             toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
@@ -287,139 +276,14 @@ local function createFeatureCard(icon, titleText, descText, toggleFunc)
     return card, toggle, toggleCircle
 end
 
--- Functions
-local function createTween(obj, props, duration)
-    local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    return TweenService:Create(obj, info, props)
-end
-
--- BULLET TRACK SYSTEM - ADVANCED
-local function toggleBulletTrack()
-    bulletTrackEnabled = not bulletTrackEnabled
-    
-    if bulletTrackEnabled then
-        -- Hook into tool activation
-        local connection
-        connection = RunService.Heartbeat:Connect(function()
-            if not bulletTrackEnabled then
-                connection:Disconnect()
-                return
-            end
-            
-            -- Find nearest enemy
-            local nearestEnemy = nil
-            local shortestDistance = math.huge
-            
-            for _, v in pairs(game.Players:GetPlayers()) do
-                if v ~= player and v.Character and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") then
-                    if v.Character.Humanoid.Health > 0 then
-                        local distance = (v.Character.Head.Position - character.Head.Position).Magnitude
-                        if distance < shortestDistance and distance < 1000 then
-                            shortestDistance = distance
-                            nearestEnemy = v.Character
-                        end
-                    end
-                end
-            end
-            
-            -- Redirect bullets
-            if nearestEnemy then
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and (obj.Name:lower():find("bullet") or obj.Name:lower():find("projectile") or obj.Size.Magnitude < 3) then
-                        if obj.AssemblyLinearVelocity.Magnitude > 50 then
-                            local direction = (nearestEnemy.Head.Position - obj.Position).Unit
-                            obj.AssemblyLinearVelocity = direction * obj.AssemblyLinearVelocity.Magnitude
-                            obj.CFrame = CFrame.lookAt(obj.Position, nearestEnemy.Head.Position)
-                        end
-                    end
-                end
-            end
-        end)
-        
-        -- Advanced bullet redirect for all gun types
-        spawn(function()
-            while bulletTrackEnabled do
-                local tool = character:FindFirstChildOfClass("Tool")
-                if tool then
-                    local handle = tool:FindFirstChild("Handle")
-                    if handle then
-                        -- Override RemoteEvents
-                        for _, remote in pairs(game:GetDescendants()) do
-                            if remote:IsA("RemoteEvent") and (remote.Name:lower():find("fire") or remote.Name:lower():find("shoot")) then
-                                local oldFire = remote.FireServer
-                                remote.FireServer = function(...)
-                                    local args = {...}
-                                    if nearestEnemy and nearestEnemy:FindFirstChild("Head") then
-                                        -- Modify args to target enemy
-                                        for i, v in pairs(args) do
-                                            if typeof(v) == "Vector3" then
-                                                args[i] = nearestEnemy.Head.Position
-                                            elseif typeof(v) == "CFrame" then
-                                                args[i] = nearestEnemy.Head.CFrame
-                                            end
-                                        end
-                                    end
-                                    return oldFire(remote, unpack(args))
-                                end
-                            end
-                        end
-                    end
-                end
-                wait(0.1)
-            end
-        end)
-    end
-    
-    return bulletTrackEnabled
-end
-
--- GOD MODE SYSTEM
-local function toggleGodMode()
-    godModeEnabled = not godModeEnabled
-    
-    if godModeEnabled then
-        -- Store original health
-        originalHealth = humanoid.MaxHealth
-        
-        -- Set infinite health
-        humanoid.MaxHealth = math.huge
-        humanoid.Health = math.huge
-        
-        -- Prevent death
-        local godConnection
-        godConnection = humanoid.HealthChanged:Connect(function()
-            if godModeEnabled then
-                humanoid.Health = humanoid.MaxHealth
-            else
-                godConnection:Disconnect()
-            end
-        end)
-        
-        -- Anti-kill protection
-        spawn(function()
-            while godModeEnabled do
-                if humanoid.Health < humanoid.MaxHealth then
-                    humanoid.Health = humanoid.MaxHealth
-                end
-                -- Remove kill bricks effect
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
-                wait(0.1)
-            end
-        end)
-    else
-        -- Restore original health
-        humanoid.MaxHealth = originalHealth or 100
-        humanoid.Health = humanoid.MaxHealth
-    end
-    
-    return godModeEnabled
-end
-
 -- FIXED FLY SYSTEM
+local ctrl = {f = 0, b = 0, l = 0, r = 0}
+local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+local maxspeed = 50
+local speed = 0
+local bg = nil
+local bv = nil
+
 local function Fly()
     if bg then bg:Destroy() end
     if bv then bv:Destroy() end
@@ -504,6 +368,43 @@ mouse.KeyUp:Connect(function(key)
     end
 end)
 
+-- Mobile controls for fly
+local TouchGui = player:WaitForChild("PlayerGui"):WaitForChild("TouchGui", 5)
+if TouchGui then
+    spawn(function()
+        while true do
+            wait(0.1)
+            if FLYING and TouchGui:FindFirstChild("TouchControlFrame") then
+                local touchFrame = TouchGui.TouchControlFrame
+                local thumbstick = touchFrame:FindFirstChild("DynamicThumbstickFrame")
+                
+                if thumbstick then
+                    local thumbstickFrame = thumbstick:FindFirstChild("ThumbstickFrame")
+                    if thumbstickFrame then
+                        local stick = thumbstickFrame:FindFirstChild("Thumbstick")
+                        if stick then
+                            local pos = stick.Position
+                            -- Fix inverted controls
+                            ctrl.f = -pos.Y.Scale
+                            ctrl.b = pos.Y.Scale
+                            ctrl.l = -pos.X.Scale
+                            ctrl.r = pos.X.Scale
+                        end
+                    end
+                end
+                
+                -- Jump button for up/down
+                local jumpButton = touchFrame:FindFirstChild("JumpButton")
+                if jumpButton then
+                    if jumpButton.ImageTransparency < 0.5 then
+                        rootPart.CFrame = rootPart.CFrame * CFrame.new(0, 1, 0)
+                    end
+                end
+            end
+        end
+    end)
+end
+
 local function toggleFly()
     flyEnabled = not flyEnabled
     
@@ -516,33 +417,7 @@ local function toggleFly()
     return flyEnabled
 end
 
--- Other existing functions
-local function toggleAutoWalk()
-    autoWalking = not autoWalking
-    
-    if autoWalking then
-        spawn(function()
-            local startTime = tick()
-            while autoWalking and tick() - startTime < 6 do
-                if humanoid and humanoid.Parent then
-                    humanoid:Move(Vector3.new(0, 0, -1))
-                end
-                wait()
-            end
-            if humanoid and humanoid.Parent then
-                humanoid:Move(Vector3.new(0, 0, 0))
-            end
-            autoWalking = false
-        end)
-    else
-        if humanoid and humanoid.Parent then
-            humanoid:Move(Vector3.new(0, 0, 0))
-        end
-    end
-    
-    return autoWalking
-end
-
+-- ESP Function
 local function toggleESP()
     espEnabled = not espEnabled
     
@@ -562,9 +437,25 @@ local function toggleESP()
                         end
                     end
                 end
+                
+                -- ESP for NPCs/Enemies
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("Model") and obj ~= character and obj:FindFirstChild("Humanoid") then
+                        local highlight = obj:FindFirstChild("ESPHighlight")
+                        if not highlight then
+                            highlight = Instance.new("Highlight")
+                            highlight.Name = "ESPHighlight"
+                            highlight.FillColor = Color3.fromRGB(255, 255, 0)
+                            highlight.FillTransparency = 0.7
+                            highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                            highlight.Parent = obj
+                        end
+                    end
+                end
                 wait(1)
             end
             
+            -- Remove all highlights
             for _, otherPlayer in pairs(game.Players:GetPlayers()) do
                 if otherPlayer.Character then
                     local highlight = otherPlayer.Character:FindFirstChild("ESPHighlight")
@@ -573,14 +464,18 @@ local function toggleESP()
                     end
                 end
             end
+            
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Highlight") and obj.Name == "ESPHighlight" then
+                    obj:Destroy()
+                end
+            end
         end)
     else
-        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-            if otherPlayer.Character then
-                local highlight = otherPlayer.Character:FindFirstChild("ESPHighlight")
-                if highlight then
-                    highlight:Destroy()
-                end
+        -- Remove all highlights
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Highlight") and obj.Name == "ESPHighlight" then
+                obj:Destroy()
             end
         end
     end
@@ -588,79 +483,9 @@ local function toggleESP()
     return espEnabled
 end
 
-local originalSpeed = humanoid.WalkSpeed
-local function toggleSpeed()
-    speedHackEnabled = not speedHackEnabled
-    
-    if speedHackEnabled then
-        humanoid.WalkSpeed = originalSpeed * 2
-    else
-        humanoid.WalkSpeed = originalSpeed
-    end
-    
-    return speedHackEnabled
-end
-
--- Create all feature cards
-createFeatureCard("👑", "حالت خدا | God Mode", "نامیرا و قدرتمند", toggleGodMode)
-createFeatureCard("🎯", "بولت ترک | Bullet Track", "تیرها به دشمن میخورند", toggleBulletTrack)
-createFeatureCard("🕊️", "پرواز | Fly Mode", "WASD برای حرکت", toggleFly)
-createFeatureCard("👁", "دید از دیوار | ESP", "دیدن دشمنان از پشت دیوار", toggleESP)
-createFeatureCard("⚡", "سرعت | Speed Boost", "سرعت 2 برابر", toggleSpeed)
-createFeatureCard("🚶", "راه رفتن خودکار | Auto Walk", "6 ثانیه حرکت به جلو", toggleAutoWalk)
-
--- Theme Change Button
-local themeCard = Instance.new("Frame")
-themeCard.Size = UDim2.new(1, -10, 0, 60)
-themeCard.Position = UDim2.new(0, 5, 0, cardY)
-themeCard.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
-themeCard.BorderSizePixel = 0
-themeCard.Parent = content
-
-local themeCorner = Instance.new("UICorner")
-themeCorner.CornerRadius = UDim.new(0, 8)
-themeCorner.Parent = themeCard
-
-local themeButton = Instance.new("TextButton")
-themeButton.Size = UDim2.new(1, -20, 0, 40)
-themeButton.Position = UDim2.new(0, 10, 0.5, -20)
-themeButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-themeButton.Text = "🎨 تغییر رنگ تم | Change Theme"
-themeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-themeButton.TextSize = 16
-themeButton.Font = Enum.Font.SourceSansBold
-themeButton.AutoButtonColor = false
-themeButton.Parent = themeCard
-
-local themeButtonCorner = Instance.new("UICorner")
-themeButtonCorner.CornerRadius = UDim.new(0, 6)
-themeButtonCorner.Parent = themeButton
-
--- Theme Change Function
-local themes = {
-    {255, 215, 0},   -- Gold
-    {255, 130, 130}, -- Red
-    {130, 255, 130}, -- Green
-    {130, 180, 255}, -- Blue
-    {180, 130, 255}, -- Purple
-    {255, 130, 180}, -- Pink
-    {130, 255, 255}, -- Cyan
-}
-local currentTheme = 1
-
-local function changeTheme()
-    currentTheme = currentTheme % #themes + 1
-    local newColor = Color3.fromRGB(themes[currentTheme][1], themes[currentTheme][2], themes[currentTheme][3])
-    
-    logoStroke.Color = newColor
-    title.TextColor3 = newColor
-    content.ScrollBarImageColor3 = newColor
-    themeButton.BackgroundColor3 = newColor
-    
-    createTween(themeButton, {Size = UDim2.new(1, -10, 0, 40)}, 0.1):Play()
-    wait(0.1)
-    createTween(themeButton, {Size = UDim2.new(1, -20, 0, 40)}, 0.1):Play()
-end
+-- Create feature cards
+createFeatureCard(10, "👁", "ESP | دید از دیوار", "نمایش بازیکنان و دشمنان", toggleESP)
+createFeatureCard(120, "🕊️", "Fly | پرواز", "WASD برای حرکت", toggleFly)
 
 -- Event Connections
 logoButton.MouseButton1Click:Connect(function()
@@ -669,7 +494,7 @@ logoButton.MouseButton1Click:Connect(function()
     
     if menuOpen then
         mainFrame.Size = UDim2.new(0, 0, 0, 0)
-        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 450)}, 0.4):Play()
+        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 300)}, 0.4):Play()
     end
 end)
 
@@ -677,11 +502,11 @@ minimizeBtn.MouseButton1Click:Connect(function()
     if not isMinimized then
         isMinimized = true
         content.Visible = false
-        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 50)}, 0.3):Play()
+        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 50)}, 0.3):Play()
     else
         isMinimized = false
         content.Visible = true
-        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 450)}, 0.3):Play()
+        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 300)}, 0.3):Play()
     end
 end)
 
@@ -691,8 +516,6 @@ closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     menuOpen = false
 end)
-
-themeButton.MouseButton1Click:Connect(changeTheme)
 
 -- Hover Effects
 local function addHoverEffect(button, hoverColor, normalColor)
@@ -718,8 +541,7 @@ spawn(function()
     end
 end)
 
-print("👑 منوی گاد نسخه 5 - لود شد!")
-print("✅ God Mode: نامیرایی کامل")
-print("✅ Bullet Track: تیرها به دشمن میخورند")
-print("✅ Fly Mode: پرواز درست شده با WASD")
-print("🔥 تمام فیچرها فعال و آماده!")
+print("✅ MINIMAL MENU LOADED!")
+print("👁 ESP: See players and enemies")
+print("🕊️ FLY: Fixed controls - Use WASD")
+print("📱 Mobile support included!")
