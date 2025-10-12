@@ -1,8 +1,9 @@
--- 🎯 Ultra Menu v4.0 - Fully Fixed & Optimized by AI
+-- 🎯 ULTRA GOD MENU v5.0 - PERSIAN EDITION
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
 local mouse = player:GetMouse()
 
 -- Services
@@ -12,30 +13,37 @@ local RunService = game:GetService("RunService")
 -- Variables
 local menuOpen = false
 local autoWalking = false
-local aimBotEnabled = false
-local isDragging = false
-local isResizing = false
+local bulletTrackEnabled = false
+local espEnabled = false
+local speedHackEnabled = false
+local godModeEnabled = false
+local flyEnabled = false
+local isMinimized = false
+local flySpeed = 50
+local originalHealth = humanoid.MaxHealth
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "UltraProMenu"
+screenGui.Name = "UltraGodMenu"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
--- Logo Button (Menu Toggle)
+-- Logo Button (Menu Toggle) - DRAGGABLE
 local logoButton = Instance.new("TextButton")
 logoButton.Name = "LogoButton"
-logoButton.Size = UDim2.new(0, 50, 0, 50)
-logoButton.Position = UDim2.new(0, 20, 0.5, -25)
+logoButton.Size = UDim2.new(0, 60, 0, 60)
+logoButton.Position = UDim2.new(0, 20, 0.5, -30)
 logoButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 logoButton.BorderSizePixel = 0
 logoButton.Text = ""
 logoButton.AutoButtonColor = false
+logoButton.Active = true
+logoButton.Draggable = true
 logoButton.Parent = screenGui
 
 local logoCorner = Instance.new("UICorner")
-logoCorner.CornerRadius = UDim.new(0, 12)
+logoCorner.CornerRadius = UDim.new(0, 15)
 logoCorner.Parent = logoButton
 
 local logoGradient = Instance.new("UIGradient")
@@ -49,27 +57,28 @@ logoGradient.Parent = logoButton
 local logoIcon = Instance.new("TextLabel")
 logoIcon.Size = UDim2.new(1, 0, 1, 0)
 logoIcon.BackgroundTransparency = 1
-logoIcon.Text = "◈"
-logoIcon.TextColor3 = Color3.fromRGB(130, 180, 255)
+logoIcon.Text = "👑"
 logoIcon.TextScaled = true
 logoIcon.Font = Enum.Font.SourceSansBold
 logoIcon.Parent = logoButton
 
 local logoStroke = Instance.new("UIStroke")
-logoStroke.Color = Color3.fromRGB(130, 180, 255)
-logoStroke.Thickness = 1.5
-logoStroke.Transparency = 0.5
+logoStroke.Color = Color3.fromRGB(255, 215, 0)
+logoStroke.Thickness = 2
+logoStroke.Transparency = 0.3
 logoStroke.Parent = logoButton
 
 -- Main Menu Frame
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 450, 0, 350)
-mainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+mainFrame.Size = UDim2.new(0, 520, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -260, 0.5, -225)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
 mainFrame.ClipsDescendants = true
+mainFrame.Active = true
+mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
@@ -98,10 +107,10 @@ bgGradient.Color = ColorSequence.new{
 bgGradient.Rotation = 90
 bgGradient.Parent = bgPattern
 
--- Header (Used for dragging entire menu)
+-- Header
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 45)
+header.Size = UDim2.new(1, 0, 0, 50)
 header.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 header.BorderSizePixel = 0
 header.Parent = mainFrame
@@ -117,40 +126,31 @@ headerGradient.Parent = header
 -- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "ULTRA MENU"
-title.TextColor3 = Color3.fromRGB(130, 180, 255)
-title.TextSize = 18
+title.Text = "👑 منوی گاد | GOD MENU"
+title.TextColor3 = Color3.fromRGB(255, 215, 0)
+title.TextSize = 20
 title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = header
 
-local titleGlow = Instance.new("TextLabel")
-titleGlow.Size = UDim2.new(0.6, 0, 1, 0)
-titleGlow.Position = UDim2.new(0, 15, 0, 1)
-titleGlow.BackgroundTransparency = 1
-titleGlow.Text = "ULTRA MENU"
-titleGlow.TextColor3 = Color3.fromRGB(130, 180, 255)
-titleGlow.TextSize = 18
-titleGlow.Font = Enum.Font.SourceSansBold
-titleGlow.TextXAlignment = Enum.TextXAlignment.Left
-titleGlow.TextTransparency = 0.8
-titleGlow.Parent = header
-
 -- Window Controls
 local controls = Instance.new("Frame")
-controls.Size = UDim2.new(0, 70, 0, 30)
-controls.Position = UDim2.new(1, -75, 0.5, -15)
+controls.Size = UDim2.new(0, 80, 0, 30)
+controls.Position = UDim2.new(1, -90, 0.5, -15)
 controls.BackgroundTransparency = 1
 controls.Parent = header
 
 -- Minimize Button
 local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
 minimizeBtn.Position = UDim2.new(0, 0, 0, 0)
 minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 180, 50)
-minimizeBtn.Text = ""
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.TextSize = 20
+minimizeBtn.Font = Enum.Font.SourceSansBold
 minimizeBtn.AutoButtonColor = false
 minimizeBtn.Parent = controls
 
@@ -158,21 +158,15 @@ local minCorner = Instance.new("UICorner")
 minCorner.CornerRadius = UDim.new(0, 6)
 minCorner.Parent = minimizeBtn
 
-local minIcon = Instance.new("TextLabel")
-minIcon.Size = UDim2.new(1, 0, 1, 0)
-minIcon.BackgroundTransparency = 1
-minIcon.Text = "−"
-minIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-minIcon.TextSize = 20
-minIcon.Font = Enum.Font.SourceSansBold
-minIcon.Parent = minimizeBtn
-
 -- Close Button
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 28, 0, 28)
-closeBtn.Position = UDim2.new(0, 35, 0, 0)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(0, 40, 0, 0)
 closeBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-closeBtn.Text = ""
+closeBtn.Text = "×"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 24
+closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.AutoButtonColor = false
 closeBtn.Parent = controls
 
@@ -180,190 +174,392 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
 
-local closeIcon = Instance.new("TextLabel")
-closeIcon.Size = UDim2.new(1, 0, 1, 0)
-closeIcon.BackgroundTransparency = 1
-closeIcon.Text = "×"
-closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeIcon.TextSize = 22
-closeIcon.Font = Enum.Font.SourceSansBold
-closeIcon.Parent = closeBtn
-
 -- Content Container
 local content = Instance.new("ScrollingFrame")
 content.Name = "Content"
-content.Size = UDim2.new(1, -20, 1, -55)
-content.Position = UDim2.new(0, 10, 0, 50)
+content.Size = UDim2.new(1, -20, 1, -60)
+content.Position = UDim2.new(0, 10, 0, 55)
 content.BackgroundTransparency = 1
 content.BorderSizePixel = 0
-content.ScrollBarThickness = 3
-content.ScrollBarImageColor3 = Color3.fromRGB(130, 180, 255)
+content.ScrollBarThickness = 4
+content.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
 content.ScrollBarImageTransparency = 0.5
-content.CanvasSize = UDim2.new(0, 0, 0, 500)
+content.CanvasSize = UDim2.new(0, 0, 0, 800)
 content.Parent = mainFrame
 
--- Feature Card 1: Auto Walk
-local card1 = Instance.new("Frame")
-card1.Size = UDim2.new(1, -10, 0, 90)
-card1.Position = UDim2.new(0, 5, 0, 10)
-card1.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
-card1.BorderSizePixel = 0
-card1.Parent = content
+-- Helper function to create feature cards
+local cardY = 10
+local function createFeatureCard(icon, titleText, descText, toggleFunc)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -10, 0, 100)
+    card.Position = UDim2.new(0, 5, 0, cardY)
+    card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+    card.BorderSizePixel = 0
+    card.Parent = content
+    
+    cardY = cardY + 110
+    
+    local cardCorner = Instance.new("UICorner")
+    cardCorner.CornerRadius = UDim.new(0, 8)
+    cardCorner.Parent = card
+    
+    local cardStroke = Instance.new("UIStroke")
+    cardStroke.Color = Color3.fromRGB(30, 30, 38)
+    cardStroke.Thickness = 1
+    cardStroke.Parent = card
+    
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Size = UDim2.new(0, 60, 0, 60)
+    iconLabel.Position = UDim2.new(0, 15, 0.5, -30)
+    iconLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    iconLabel.Text = icon
+    iconLabel.TextSize = 28
+    iconLabel.Font = Enum.Font.SourceSansBold
+    iconLabel.Parent = card
+    
+    local iconCorner = Instance.new("UICorner")
+    iconCorner.CornerRadius = UDim.new(0, 8)
+    iconCorner.Parent = iconLabel
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0.5, 0, 0, 25)
+    titleLabel.Position = UDim2.new(0, 90, 0, 20)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = titleText
+    titleLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
+    titleLabel.TextSize = 18
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = card
+    
+    local descLabel = Instance.new("TextLabel")
+    descLabel.Size = UDim2.new(0.5, 0, 0, 20)
+    descLabel.Position = UDim2.new(0, 90, 0, 50)
+    descLabel.BackgroundTransparency = 1
+    descLabel.Text = descText
+    descLabel.TextColor3 = Color3.fromRGB(130, 130, 140)
+    descLabel.TextSize = 14
+    descLabel.Font = Enum.Font.SourceSans
+    descLabel.TextXAlignment = Enum.TextXAlignment.Left
+    descLabel.Parent = card
+    
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 60, 0, 30)
+    toggle.Position = UDim2.new(1, -75, 0.5, -15)
+    toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+    toggle.Text = ""
+    toggle.AutoButtonColor = false
+    toggle.Parent = card
+    
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+    toggleCorner.Parent = toggle
+    
+    local toggleCircle = Instance.new("Frame")
+    toggleCircle.Size = UDim2.new(0, 24, 0, 24)
+    toggleCircle.Position = UDim2.new(0, 3, 0.5, -12)
+    toggleCircle.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
+    toggleCircle.Parent = toggle
+    
+    local toggleCircleCorner = Instance.new("UICorner")
+    toggleCircleCorner.CornerRadius = UDim.new(1, 0)
+    toggleCircleCorner.Parent = toggleCircle
+    
+    toggle.MouseButton1Click:Connect(function()
+        local enabled = toggleFunc()
+        if enabled then
+            toggle.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+            createTween(toggleCircle, {Position = UDim2.new(1, -27, 0.5, -12)}, 0.2):Play()
+        else
+            toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+            createTween(toggleCircle, {Position = UDim2.new(0, 3, 0.5, -12)}, 0.2):Play()
+        end
+    end)
+    
+    return card, toggle, toggleCircle
+end
 
-local card1Corner = Instance.new("UICorner")
-card1Corner.CornerRadius = UDim.new(0, 8)
-card1Corner.Parent = card1
+-- Functions
+local function createTween(obj, props, duration)
+    local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    return TweenService:Create(obj, info, props)
+end
 
-local card1Stroke = Instance.new("UIStroke")
-card1Stroke.Color = Color3.fromRGB(30, 30, 38)
-card1Stroke.Thickness = 1
-card1Stroke.Parent = card1
+-- BULLET TRACK SYSTEM - ADVANCED
+local function toggleBulletTrack()
+    bulletTrackEnabled = not bulletTrackEnabled
+    
+    if bulletTrackEnabled then
+        -- Hook into tool activation
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            if not bulletTrackEnabled then
+                connection:Disconnect()
+                return
+            end
+            
+            -- Find nearest enemy
+            local nearestEnemy = nil
+            local shortestDistance = math.huge
+            
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") then
+                    if v.Character.Humanoid.Health > 0 then
+                        local distance = (v.Character.Head.Position - character.Head.Position).Magnitude
+                        if distance < shortestDistance and distance < 1000 then
+                            shortestDistance = distance
+                            nearestEnemy = v.Character
+                        end
+                    end
+                end
+            end
+            
+            -- Redirect bullets
+            if nearestEnemy then
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and (obj.Name:lower():find("bullet") or obj.Name:lower():find("projectile") or obj.Size.Magnitude < 3) then
+                        if obj.AssemblyLinearVelocity.Magnitude > 50 then
+                            local direction = (nearestEnemy.Head.Position - obj.Position).Unit
+                            obj.AssemblyLinearVelocity = direction * obj.AssemblyLinearVelocity.Magnitude
+                            obj.CFrame = CFrame.lookAt(obj.Position, nearestEnemy.Head.Position)
+                        end
+                    end
+                end
+            end
+        end)
+        
+        -- Advanced bullet redirect for all gun types
+        spawn(function()
+            while bulletTrackEnabled do
+                local tool = character:FindFirstChildOfClass("Tool")
+                if tool then
+                    local handle = tool:FindFirstChild("Handle")
+                    if handle then
+                        -- Override RemoteEvents
+                        for _, remote in pairs(game:GetDescendants()) do
+                            if remote:IsA("RemoteEvent") and (remote.Name:lower():find("fire") or remote.Name:lower():find("shoot")) then
+                                local oldFire = remote.FireServer
+                                remote.FireServer = function(...)
+                                    local args = {...}
+                                    if nearestEnemy and nearestEnemy:FindFirstChild("Head") then
+                                        -- Modify args to target enemy
+                                        for i, v in pairs(args) do
+                                            if typeof(v) == "Vector3" then
+                                                args[i] = nearestEnemy.Head.Position
+                                            elseif typeof(v) == "CFrame" then
+                                                args[i] = nearestEnemy.Head.CFrame
+                                            end
+                                        end
+                                    end
+                                    return oldFire(remote, unpack(args))
+                                end
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+    
+    return bulletTrackEnabled
+end
 
-local walkIcon = Instance.new("TextLabel")
-walkIcon.Size = UDim2.new(0, 50, 0, 50)
-walkIcon.Position = UDim2.new(0, 15, 0.5, -25)
-walkIcon.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-walkIcon.Text = "🚶"
-walkIcon.TextSize = 24
-walkIcon.Font = Enum.Font.SourceSansBold
-walkIcon.Parent = card1
+-- GOD MODE SYSTEM
+local function toggleGodMode()
+    godModeEnabled = not godModeEnabled
+    
+    if godModeEnabled then
+        -- Store original health
+        originalHealth = humanoid.MaxHealth
+        
+        -- Set infinite health
+        humanoid.MaxHealth = math.huge
+        humanoid.Health = math.huge
+        
+        -- Prevent death
+        local godConnection
+        godConnection = humanoid.HealthChanged:Connect(function()
+            if godModeEnabled then
+                humanoid.Health = humanoid.MaxHealth
+            else
+                godConnection:Disconnect()
+            end
+        end)
+        
+        -- Anti-kill protection
+        spawn(function()
+            while godModeEnabled do
+                if humanoid.Health < humanoid.MaxHealth then
+                    humanoid.Health = humanoid.MaxHealth
+                end
+                -- Remove kill bricks effect
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    else
+        -- Restore original health
+        humanoid.MaxHealth = originalHealth or 100
+        humanoid.Health = humanoid.MaxHealth
+    end
+    
+    return godModeEnabled
+end
 
-local walkIconCorner = Instance.new("UICorner")
-walkIconCorner.CornerRadius = UDim.new(0, 8)
-walkIconCorner.Parent = walkIcon
+-- FLY SYSTEM
+local bodyVelocity
+local bodyGyro
+local function toggleFly()
+    flyEnabled = not flyEnabled
+    
+    if flyEnabled then
+        -- Create BodyVelocity and BodyGyro
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = rootPart
+        
+        bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.D = 500
+        bodyGyro.P = 10000
+        bodyGyro.CFrame = rootPart.CFrame
+        bodyGyro.Parent = rootPart
+        
+        -- Fly control
+        spawn(function()
+            while flyEnabled do
+                local camera = workspace.CurrentCamera
+                local moveVector = humanoid.MoveDirection * flySpeed
+                
+                if moveVector.Magnitude > 0 then
+                    bodyVelocity.Velocity = camera.CFrame:VectorToWorldSpace(Vector3.new(moveVector.X, 0, moveVector.Z))
+                else
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                end
+                
+                -- Up and down control
+                if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                    bodyVelocity.Velocity = bodyVelocity.Velocity + Vector3.new(0, flySpeed, 0)
+                elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+                    bodyVelocity.Velocity = bodyVelocity.Velocity - Vector3.new(0, flySpeed, 0)
+                end
+                
+                bodyGyro.CFrame = camera.CFrame
+                wait()
+            end
+        end)
+    else
+        -- Remove fly objects
+        if bodyVelocity then bodyVelocity:Destroy() end
+        if bodyGyro then bodyGyro:Destroy() end
+    end
+    
+    return flyEnabled
+end
 
-local walkTitle = Instance.new("TextLabel")
-walkTitle.Size = UDim2.new(0.5, 0, 0, 25)
-walkTitle.Position = UDim2.new(0, 80, 0, 15)
-walkTitle.BackgroundTransparency = 1
-walkTitle.Text = "Auto Walk"
-walkTitle.TextColor3 = Color3.fromRGB(220, 220, 230)
-walkTitle.TextSize = 16
-walkTitle.Font = Enum.Font.SourceSansBold
-walkTitle.TextXAlignment = Enum.TextXAlignment.Left
-walkTitle.Parent = card1
+-- Other existing functions
+local function toggleAutoWalk()
+    autoWalking = not autoWalking
+    
+    if autoWalking then
+        spawn(function()
+            local startTime = tick()
+            while autoWalking and tick() - startTime < 6 do
+                if humanoid and humanoid.Parent then
+                    humanoid:Move(Vector3.new(0, 0, -1))
+                end
+                wait()
+            end
+            if humanoid and humanoid.Parent then
+                humanoid:Move(Vector3.new(0, 0, 0))
+            end
+            autoWalking = false
+        end)
+    else
+        if humanoid and humanoid.Parent then
+            humanoid:Move(Vector3.new(0, 0, 0))
+        end
+    end
+    
+    return autoWalking
+end
 
-local walkDesc = Instance.new("TextLabel")
-walkDesc.Size = UDim2.new(0.5, 0, 0, 20)
-walkDesc.Position = UDim2.new(0, 80, 0, 40)
-walkDesc.BackgroundTransparency = 1
-walkDesc.Text = "6 seconds auto movement"
-walkDesc.TextColor3 = Color3.fromRGB(130, 130, 140)
-walkDesc.TextSize = 13
-walkDesc.Font = Enum.Font.SourceSans
-walkDesc.TextXAlignment = Enum.TextXAlignment.Left
-walkDesc.Parent = card1
+local function toggleESP()
+    espEnabled = not espEnabled
+    
+    if espEnabled then
+        spawn(function()
+            while espEnabled do
+                for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                    if otherPlayer ~= player and otherPlayer.Character then
+                        local highlight = otherPlayer.Character:FindFirstChild("ESPHighlight")
+                        if not highlight then
+                            highlight = Instance.new("Highlight")
+                            highlight.Name = "ESPHighlight"
+                            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                            highlight.FillTransparency = 0.5
+                            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            highlight.Parent = otherPlayer.Character
+                        end
+                    end
+                end
+                wait(1)
+            end
+            
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer.Character then
+                    local highlight = otherPlayer.Character:FindFirstChild("ESPHighlight")
+                    if highlight then
+                        highlight:Destroy()
+                    end
+                end
+            end
+        end)
+    else
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            if otherPlayer.Character then
+                local highlight = otherPlayer.Character:FindFirstChild("ESPHighlight")
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+        end
+    end
+    
+    return espEnabled
+end
 
--- Toggle Switch for Auto Walk
-local toggle1 = Instance.new("Frame")
-toggle1.Size = UDim2.new(0, 50, 0, 26)
-toggle1.Position = UDim2.new(1, -65, 0.5, -13)
-toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-toggle1.Parent = card1
+local originalSpeed = humanoid.WalkSpeed
+local function toggleSpeed()
+    speedHackEnabled = not speedHackEnabled
+    
+    if speedHackEnabled then
+        humanoid.WalkSpeed = originalSpeed * 2
+    else
+        humanoid.WalkSpeed = originalSpeed
+    end
+    
+    return speedHackEnabled
+end
 
-local toggle1Corner = Instance.new("UICorner")
-toggle1Corner.CornerRadius = UDim.new(1, 0)
-toggle1Corner.Parent = toggle1
-
-local toggle1Button = Instance.new("TextButton")
-toggle1Button.Size = UDim2.new(1, 0, 1, 0)
-toggle1Button.BackgroundTransparency = 1
-toggle1Button.Text = ""
-toggle1Button.Parent = toggle1
-
-local toggle1Circle = Instance.new("Frame")
-toggle1Circle.Size = UDim2.new(0, 20, 0, 20)
-toggle1Circle.Position = UDim2.new(0, 3, 0.5, -10)
-toggle1Circle.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
-toggle1Circle.Parent = toggle1
-
-local toggle1CircleCorner = Instance.new("UICorner")
-toggle1CircleCorner.CornerRadius = UDim.new(1, 0)
-toggle1CircleCorner.Parent = toggle1Circle
-
--- Feature Card 2: Aim Bot
-local card2 = Instance.new("Frame")
-card2.Size = UDim2.new(1, -10, 0, 90)
-card2.Position = UDim2.new(0, 5, 0, 110)
-card2.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
-card2.BorderSizePixel = 0
-card2.Parent = content
-
-local card2Corner = Instance.new("UICorner")
-card2Corner.CornerRadius = UDim.new(0, 8)
-card2Corner.Parent = card2
-
-local card2Stroke = Instance.new("UIStroke")
-card2Stroke.Color = Color3.fromRGB(30, 30, 38)
-card2Stroke.Thickness = 1
-card2Stroke.Parent = card2
-
-local aimIcon = Instance.new("TextLabel")
-aimIcon.Size = UDim2.new(0, 50, 0, 50)
-aimIcon.Position = UDim2.new(0, 15, 0.5, -25)
-aimIcon.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-aimIcon.Text = "🎯"
-aimIcon.TextSize = 24
-aimIcon.Font = Enum.Font.SourceSansBold
-aimIcon.Parent = card2
-
-local aimIconCorner = Instance.new("UICorner")
-aimIconCorner.CornerRadius = UDim.new(0, 8)
-aimIconCorner.Parent = aimIcon
-
-local aimTitle = Instance.new("TextLabel")
-aimTitle.Size = UDim2.new(0.5, 0, 0, 25)
-aimTitle.Position = UDim2.new(0, 80, 0, 15)
-aimTitle.BackgroundTransparency = 1
-aimTitle.Text = "Simple Aim Bot"
-aimTitle.TextColor3 = Color3.fromRGB(220, 220, 230)
-aimTitle.TextSize = 16
-aimTitle.Font = Enum.Font.SourceSansBold
-aimTitle.TextXAlignment = Enum.TextXAlignment.Left
-aimTitle.Parent = card2
-
-local aimDesc = Instance.new("TextLabel")
-aimDesc.Size = UDim2.new(0.5, 0, 0, 20)
-aimDesc.Position = UDim2.new(0, 80, 0, 40)
-aimDesc.BackgroundTransparency = 1
-aimDesc.Text = "Basic targeting assistant"
-aimDesc.TextColor3 = Color3.fromRGB(130, 130, 140)
-aimDesc.TextSize = 13
-aimDesc.Font = Enum.Font.SourceSans
-aimDesc.TextXAlignment = Enum.TextXAlignment.Left
-aimDesc.Parent = card2
-
--- Toggle Switch for Aim Bot
-local toggle2 = Instance.new("Frame")
-toggle2.Size = UDim2.new(0, 50, 0, 26)
-toggle2.Position = UDim2.new(1, -65, 0.5, -13)
-toggle2.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-toggle2.Parent = card2
-
-local toggle2Corner = Instance.new("UICorner")
-toggle2Corner.CornerRadius = UDim.new(1, 0)
-toggle2Corner.Parent = toggle2
-
-local toggle2Button = Instance.new("TextButton")
-toggle2Button.Size = UDim2.new(1, 0, 1, 0)
-toggle2Button.BackgroundTransparency = 1
-toggle2Button.Text = ""
-toggle2Button.Parent = toggle2
-
-local toggle2Circle = Instance.new("Frame")
-toggle2Circle.Size = UDim2.new(0, 20, 0, 20)
-toggle2Circle.Position = UDim2.new(0, 3, 0.5, -10)
-toggle2Circle.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
-toggle2Circle.Parent = toggle2
-
-local toggle2CircleCorner = Instance.new("UICorner")
-toggle2CircleCorner.CornerRadius = UDim.new(1, 0)
-toggle2CircleCorner.Parent = toggle2Circle
+-- Create all feature cards
+createFeatureCard("👑", "حالت خدا | God Mode", "نامیرا و قدرتمند", toggleGodMode)
+createFeatureCard("🎯", "بولت ترک | Bullet Track", "تیرها به دشمن میخورند", toggleBulletTrack)
+createFeatureCard("🕊️", "پرواز | Fly Mode", "Space=بالا Shift=پایین", toggleFly)
+createFeatureCard("👁", "دید از دیوار | ESP", "دیدن دشمنان از پشت دیوار", toggleESP)
+createFeatureCard("⚡", "سرعت | Speed Boost", "سرعت 2 برابر", toggleSpeed)
+createFeatureCard("🚶", "راه رفتن خودکار | Auto Walk", "6 ثانیه حرکت به جلو", toggleAutoWalk)
 
 -- Theme Change Button
 local themeCard = Instance.new("Frame")
 themeCard.Size = UDim2.new(1, -10, 0, 60)
-themeCard.Position = UDim2.new(0, 5, 0, 210)
+themeCard.Position = UDim2.new(0, 5, 0, cardY)
 themeCard.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
 themeCard.BorderSizePixel = 0
 themeCard.Parent = content
@@ -375,10 +571,10 @@ themeCorner.Parent = themeCard
 local themeButton = Instance.new("TextButton")
 themeButton.Size = UDim2.new(1, -20, 0, 40)
 themeButton.Position = UDim2.new(0, 10, 0.5, -20)
-themeButton.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
-themeButton.Text = "Change Theme Color"
-themeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-themeButton.TextSize = 14
+themeButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+themeButton.Text = "🎨 تغییر رنگ تم | Change Theme"
+themeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+themeButton.TextSize = 16
 themeButton.Font = Enum.Font.SourceSansBold
 themeButton.AutoButtonColor = false
 themeButton.Parent = themeCard
@@ -387,148 +583,27 @@ local themeButtonCorner = Instance.new("UICorner")
 themeButtonCorner.CornerRadius = UDim.new(0, 6)
 themeButtonCorner.Parent = themeButton
 
--- Resize Handle
-local resizeHandle = Instance.new("Frame")
-resizeHandle.Size = UDim2.new(0, 20, 0, 20)
-resizeHandle.Position = UDim2.new(1, -20, 1, -20)
-resizeHandle.BackgroundTransparency = 1
-resizeHandle.Parent = mainFrame
-
-local resizeIcon = Instance.new("TextLabel")
-resizeIcon.Size = UDim2.new(1, 0, 1, 0)
-resizeIcon.BackgroundTransparency = 1
-resizeIcon.Text = "◢"
-resizeIcon.TextColor3 = Color3.fromRGB(60, 60, 70)
-resizeIcon.TextSize = 16
-resizeIcon.Font = Enum.Font.SourceSans
-resizeIcon.Parent = resizeHandle
-
--- Functions
-local function createTween(obj, props, duration)
-    local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    return TweenService:Create(obj, info, props)
-end
-
--- Make Frame Draggable (entire menu)
-local function makeDraggable(frame, handle)
-    local dragStart = nil
-    local startPos = nil
-
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            isDragging = true
-            dragStart = input.Position
-            startPos = frame.AbsolutePosition
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    isDragging = false
-                end
-            end)
-        end
-    end)
-
-    handle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                0, startPos.X + delta.X,
-                0, startPos.Y + delta.Y
-            )
-        end
-    end)
-end
-
--- Make Frame Resizable
-local function makeResizable(frame, handle)
-    local resizeStart = nil
-    local startSize = nil
-
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            isResizing = true
-            resizeStart = input.Position
-            startSize = frame.Size
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    isResizing = false
-                end
-            end)
-        end
-    end)
-
-    handle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and isResizing then
-            local delta = input.Position - resizeStart
-            local newWidth = math.max(300, startSize.X.Offset + delta.X)
-            local newHeight = math.max(200, startSize.Y.Offset + delta.Y)
-
-            frame.Size = UDim2.new(0, newWidth, 0, newHeight)
-        end
-    end)
-end
-
-makeDraggable(mainFrame, header) -- Drag from header
-makeResizable(mainFrame, resizeHandle)
-
--- Auto Walk Function
-local function toggleAutoWalk()
-    autoWalking = not autoWalking
-
-    if autoWalking then
-        toggle1.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
-        createTween(toggle1Circle, {Position = UDim2.new(1, -23, 0.5, -10)}, 0.2):Play()
-
-        spawn(function()
-            local startTime = tick()
-            while autoWalking and tick() - startTime < 6 do
-                humanoid:Move(Vector3.new(0, 0, -1))
-                wait()
-            end
-            humanoid:Move(Vector3.new(0, 0, 0))
-            autoWalking = false
-            toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-            createTween(toggle1Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
-        end)
-    else
-        toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-        createTween(toggle1Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
-    end
-end
-
--- Simple Aim Bot Function
-local function toggleAimBot()
-    aimBotEnabled = not aimBotEnabled
-
-    if aimBotEnabled then
-        toggle2.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
-        createTween(toggle2Circle, {Position = UDim2.new(1, -23, 0.5, -10)}, 0.2):Play()
-
-        spawn(function()
-            while aimBotEnabled do
-                print("Aim Bot Active (Simulation)")
-                wait(0.1)
-            end
-        end)
-    else
-        toggle2.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
-        createTween(toggle2Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
-    end
-end
-
 -- Theme Change Function
-local function changeTheme()
-    local hue = math.random()
-    local newColor = Color3.fromHSV(hue, 0.6, 1)
+local themes = {
+    {255, 215, 0},   -- Gold
+    {255, 130, 130}, -- Red
+    {130, 255, 130}, -- Green
+    {130, 180, 255}, -- Blue
+    {180, 130, 255}, -- Purple
+    {255, 130, 180}, -- Pink
+    {130, 255, 255}, -- Cyan
+}
+local currentTheme = 1
 
-    logoIcon.TextColor3 = newColor
+local function changeTheme()
+    currentTheme = currentTheme % #themes + 1
+    local newColor = Color3.fromRGB(themes[currentTheme][1], themes[currentTheme][2], themes[currentTheme][3])
+    
     logoStroke.Color = newColor
     title.TextColor3 = newColor
-    titleGlow.TextColor3 = newColor
     content.ScrollBarImageColor3 = newColor
     themeButton.BackgroundColor3 = newColor
-
+    
     createTween(themeButton, {Size = UDim2.new(1, -10, 0, 40)}, 0.1):Play()
     wait(0.1)
     createTween(themeButton, {Size = UDim2.new(1, -20, 0, 40)}, 0.1):Play()
@@ -538,22 +613,22 @@ end
 logoButton.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     mainFrame.Visible = menuOpen
-
+    
     if menuOpen then
         mainFrame.Size = UDim2.new(0, 0, 0, 0)
-        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 350)}, 0.4):Play()
+        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 450)}, 0.4):Play()
     end
 end)
 
 minimizeBtn.MouseButton1Click:Connect(function()
-    createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 45)}, 0.3):Play()
-    content.Visible = false
-end)
-
-header.MouseButton1Click:Connect(function()
-    if not content.Visible then
+    if not isMinimized then
+        isMinimized = true
+        content.Visible = false
+        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 50)}, 0.3):Play()
+    else
+        isMinimized = false
         content.Visible = true
-        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 350)}, 0.3):Play()
+        createTween(mainFrame, {Size = UDim2.new(0, 520, 0, 450)}, 0.3):Play()
     end
 end)
 
@@ -564,8 +639,6 @@ closeBtn.MouseButton1Click:Connect(function()
     menuOpen = false
 end)
 
-toggle1Button.MouseButton1Click:Connect(toggleAutoWalk)
-toggle2Button.MouseButton1Click:Connect(toggleAimBot)
 themeButton.MouseButton1Click:Connect(changeTheme)
 
 -- Hover Effects
@@ -573,7 +646,7 @@ local function addHoverEffect(button, hoverColor, normalColor)
     button.MouseEnter:Connect(function()
         createTween(button, {BackgroundColor3 = hoverColor}, 0.2):Play()
     end)
-
+    
     button.MouseLeave:Connect(function()
         createTween(button, {BackgroundColor3 = normalColor}, 0.2):Play()
     end)
@@ -582,4 +655,18 @@ end
 addHoverEffect(minimizeBtn, Color3.fromRGB(255, 200, 70), Color3.fromRGB(255, 180, 50))
 addHoverEffect(closeBtn, Color3.fromRGB(255, 90, 90), Color3.fromRGB(255, 70, 70))
 
-print("✨ Ultra Menu v4.0 - Loaded Successfully!")
+-- Logo Animation
+spawn(function()
+    while true do
+        createTween(logoIcon, {Rotation = 360}, 3):Play()
+        wait(3)
+        logoIcon.Rotation = 0
+        wait(2)
+    end
+end)
+
+print("👑 منوی گاد نسخه 5 - لود شد!")
+print("✅ God Mode: نامیرایی کامل")
+print("✅ Bullet Track: تیرها به دشمن میخورند")
+print("✅ Fly Mode: پرواز با Space و Shift")
+print("🔥 تمام فیچرها فعال و آماده!")
