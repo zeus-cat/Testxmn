@@ -1,573 +1,590 @@
--- Nightfall UI - Clean, Dark, Draggable, Resizable, No-lag
--- Author: You + Assistant
--- Place as a LocalScript in StarterPlayer > StarterPlayerScripts
+-- 🎯 Pro Menu v3.0 - Ultra Clean & Modern
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+-- Services
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
 
--- Helpers
-local function safeWaitForHumanoid()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid") or character:WaitForChild("Humanoid")
-    return character, humanoid
-end
+-- Variables
+local menuOpen = false
+local autoWalking = false
+local aimBotEnabled = false
+local isDragging = false
+local isResizing = false
 
-local function clamp(n, min, max)
-    if n < min then return min end
-    if n > max then return max end
-    return n
-end
-
--- Theme
-local primaryColor = Color3.fromRGB(120, 180, 255) -- تغییرپذیر
-local bgColor = Color3.fromRGB(18, 18, 22)
-local cardColor = Color3.fromRGB(24, 24, 29)
-local headerColorA = Color3.fromRGB(28, 32, 40)
-local headerColorB = Color3.fromRGB(20, 22, 28)
-local strokeColor = Color3.fromRGB(35, 40, 50)
-local accentSoft = Color3.fromRGB(160, 200, 255)
-
--- Root ScreenGui
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "NightfallUI"
+screenGui.Name = "UltraProMenu"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = 10
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
 
--- Dock Logo (opens/closes menu)
-local dock = Instance.new("ImageButton")
-dock.Name = "DockLogo"
-dock.AnchorPoint = Vector2.new(0, 0.5)
-dock.Size = UDim2.new(0, 56, 0, 56)
-dock.Position = UDim2.new(0, 14, 0.5, 0)
-dock.BackgroundTransparency = 0.1
-dock.Image = "rbxasset://textures/ui/TopBar/iconBase.png" -- Placeholder؛ می‌تونی آیکون دلخواه بدی
-dock.ScaleType = Enum.ScaleType.Fit
-dock.AutoButtonColor = false
-dock.Parent = screenGui
+-- Logo Button (Menu Toggle)
+local logoButton = Instance.new("TextButton")
+logoButton.Name = "LogoButton"
+logoButton.Size = UDim2.new(0, 50, 0, 50)
+logoButton.Position = UDim2.new(0, 20, 0.5, -25)
+logoButton.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+logoButton.BorderSizePixel = 0
+logoButton.Text = ""
+logoButton.AutoButtonColor = false
+logoButton.Parent = screenGui
 
-local dockCorner = Instance.new("UICorner", dock)
-dockCorner.CornerRadius = UDim.new(0, 14)
+local logoCorner = Instance.new("UICorner")
+logoCorner.CornerRadius = UDim.new(0, 12)
+logoCorner.Parent = logoButton
 
-local dockStroke = Instance.new("UIStroke", dock)
-dockStroke.Color = primaryColor
-dockStroke.Thickness = 2
-dockStroke.Transparency = 0.2
-
-local dockGradient = Instance.new("UIGradient", dock)
-dockGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, headerColorA),
-    ColorSequenceKeypoint.new(1, headerColorB)
+local logoGradient = Instance.new("UIGradient")
+logoGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 60)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 35))
 }
-dockGradient.Rotation = 90
+logoGradient.Rotation = 45
+logoGradient.Parent = logoButton
 
--- Window
-local window = Instance.new("Frame")
-window.Name = "Window"
-window.Size = UDim2.new(0, 460, 0, 300)
-window.Position = UDim2.new(0.5, -230, 0.5, -150)
-window.BackgroundColor3 = cardColor
-window.BorderSizePixel = 0
-window.Active = true
-window.Parent = screenGui
+local logoIcon = Instance.new("TextLabel")
+logoIcon.Size = UDim2.new(1, 0, 1, 0)
+logoIcon.BackgroundTransparency = 1
+logoIcon.Text = "◈"
+logoIcon.TextColor3 = Color3.fromRGB(130, 180, 255)
+logoIcon.TextScaled = true
+logoIcon.Font = Enum.Font.SourceSansBold
+logoIcon.Parent = logoButton
 
-local windowCorner = Instance.new("UICorner", window)
-windowCorner.CornerRadius = UDim.new(0, 14)
+local logoStroke = Instance.new("UIStroke")
+logoStroke.Color = Color3.fromRGB(130, 180, 255)
+logoStroke.Thickness = 1.5
+logoStroke.Transparency = 0.5
+logoStroke.Parent = logoButton
 
-local windowStroke = Instance.new("UIStroke", window)
-windowStroke.Color = strokeColor
-windowStroke.Thickness = 1
-windowStroke.Transparency = 0
+-- Main Menu Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 450, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
 
--- Subtle background pattern (optional visual)
-local pattern = Instance.new("ImageLabel")
-pattern.Name = "Pattern"
-pattern.BackgroundTransparency = 1
-pattern.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png" -- جایگزین کن با تکسچر دلخواه
-pattern.ImageTransparency = 0.9
-pattern.ScaleType = Enum.ScaleType.Tile
-pattern.TileSize = UDim2.new(0, 128, 0, 128)
-pattern.Size = UDim2.new(1, 0, 1, 0)
-pattern.Parent = window
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
 
--- Header (drag handle)
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(35, 35, 45)
+mainStroke.Thickness = 1
+mainStroke.Parent = mainFrame
+
+-- Background Pattern
+local bgPattern = Instance.new("Frame")
+bgPattern.Size = UDim2.new(1, 0, 1, 0)
+bgPattern.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+bgPattern.BackgroundTransparency = 0.98
+bgPattern.BorderSizePixel = 0
+bgPattern.Parent = mainFrame
+
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(15, 15, 20)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+}
+bgGradient.Rotation = 90
+bgGradient.Parent = bgPattern
+
+-- Header
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 50)
-header.BackgroundColor3 = headerColorA
+header.Size = UDim2.new(1, 0, 0, 45)
+header.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 header.BorderSizePixel = 0
-header.Parent = window
+header.Parent = mainFrame
 
-local headerCorner = Instance.new("UICorner", header)
-headerCorner.CornerRadius = UDim.new(0, 14)
-
-local headerGradient = Instance.new("UIGradient", header)
+local headerGradient = Instance.new("UIGradient")
 headerGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, headerColorA),
-    ColorSequenceKeypoint.new(1, headerColorB)
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 18, 23)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 12, 17))
 }
 headerGradient.Rotation = 90
-
-local headerStroke = Instance.new("UIStroke", header)
-headerStroke.Color = strokeColor
-headerStroke.Thickness = 1
-headerStroke.Transparency = 0
-
--- Header icon
-local headIcon = Instance.new("ImageLabel")
-headIcon.BackgroundTransparency = 1
-headIcon.Image = "rbxasset://textures/ui/TopBar/iconBase.png"
-headIcon.ImageColor3 = accentSoft
-headIcon.Size = UDim2.new(0, 22, 0, 22)
-headIcon.Position = UDim2.new(0, 16, 0.5, -11)
-headIcon.Parent = header
+headerGradient.Parent = header
 
 -- Title
 local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0.6, 0, 1, 0)
+title.Position = UDim2.new(0, 15, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "Nightfall Menu"
-title.Font = Enum.Font.GothamSemibold
+title.Text = "ULTRA MENU"
+title.TextColor3 = Color3.fromRGB(130, 180, 255)
 title.TextSize = 18
-title.TextColor3 = Color3.fromRGB(220, 230, 255)
+title.Font = Enum.Font.SourceSansBold
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Size = UDim2.new(1, -160, 1, 0)
-title.Position = UDim2.new(0, 46, 0, 0)
 title.Parent = header
 
--- Header buttons (minimize, close)
-local btnMin = Instance.new("TextButton")
-btnMin.Name = "Minimize"
-btnMin.Size = UDim2.new(0, 34, 0, 34)
-btnMin.Position = UDim2.new(1, -86, 0.5, -17)
-btnMin.BackgroundColor3 = Color3.fromRGB(255, 185, 55)
-btnMin.Text = "—"
-btnMin.Font = Enum.Font.GothamBold
-btnMin.TextSize = 18
-btnMin.TextColor3 = Color3.new(1,1,1)
-btnMin.AutoButtonColor = false
-btnMin.Parent = header
-Instance.new("UICorner", btnMin).CornerRadius = UDim.new(0, 8)
+local titleGlow = Instance.new("TextLabel")
+titleGlow.Size = UDim2.new(0.6, 0, 1, 0)
+titleGlow.Position = UDim2.new(0, 15, 0, 1)
+titleGlow.BackgroundTransparency = 1
+titleGlow.Text = "ULTRA MENU"
+titleGlow.TextColor3 = Color3.fromRGB(130, 180, 255)
+titleGlow.TextSize = 18
+titleGlow.Font = Enum.Font.SourceSansBold
+titleGlow.TextXAlignment = Enum.TextXAlignment.Left
+titleGlow.TextTransparency = 0.8
+titleGlow.Parent = header
 
-local btnClose = Instance.new("TextButton")
-btnClose.Name = "Close"
-btnClose.Size = UDim2.new(0, 34, 0, 34)
-btnClose.Position = UDim2.new(1, -44, 0.5, -17)
-btnClose.BackgroundColor3 = Color3.fromRGB(240, 70, 70)
-btnClose.Text = "✕"
-btnClose.Font = Enum.Font.GothamBold
-btnClose.TextSize = 18
-btnClose.TextColor3 = Color3.new(1,1,1)
-btnClose.AutoButtonColor = false
-btnClose.Parent = header
-Instance.new("UICorner", btnClose).CornerRadius = UDim.new(0, 8)
+-- Window Controls
+local controls = Instance.new("Frame")
+controls.Size = UDim2.new(0, 70, 0, 30)
+controls.Position = UDim2.new(1, -75, 0.5, -15)
+controls.BackgroundTransparency = 1
+controls.Parent = header
 
--- Content
-local content = Instance.new("Frame")
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+minimizeBtn.Position = UDim2.new(0, 0, 0, 0)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 180, 50)
+minimizeBtn.Text = ""
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = controls
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minimizeBtn
+
+local minIcon = Instance.new("TextLabel")
+minIcon.Size = UDim2.new(1, 0, 1, 0)
+minIcon.BackgroundTransparency = 1
+minIcon.Text = "−"
+minIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+minIcon.TextSize = 20
+minIcon.Font = Enum.Font.SourceSansBold
+minIcon.Parent = minimizeBtn
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 28, 0, 28)
+closeBtn.Position = UDim2.new(0, 35, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeBtn.Text = ""
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = controls
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+
+local closeIcon = Instance.new("TextLabel")
+closeIcon.Size = UDim2.new(1, 0, 1, 0)
+closeIcon.BackgroundTransparency = 1
+closeIcon.Text = "×"
+closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeIcon.TextSize = 22
+closeIcon.Font = Enum.Font.SourceSansBold
+closeIcon.Parent = closeBtn
+
+-- Content Container
+local content = Instance.new("ScrollingFrame")
 content.Name = "Content"
+content.Size = UDim2.new(1, -20, 1, -55)
+content.Position = UDim2.new(0, 10, 0, 50)
 content.BackgroundTransparency = 1
-content.Position = UDim2.new(0, 14, 0, 64)
-content.Size = UDim2.new(1, -28, 1, -78)
-content.Parent = window
+content.BorderSizePixel = 0
+content.ScrollBarThickness = 3
+content.ScrollBarImageColor3 = Color3.fromRGB(130, 180, 255)
+content.ScrollBarImageTransparency = 0.5
+content.CanvasSize = UDim2.new(0, 0, 0, 500)
+content.Parent = mainFrame
 
-local list = Instance.new("UIListLayout", content)
-list.Padding = UDim.new(0, 10)
-list.FillDirection = Enum.FillDirection.Vertical
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.SortOrder = Enum.SortOrder.LayoutOrder
+-- Feature Card 1: Auto Walk
+local card1 = Instance.new("Frame")
+card1.Size = UDim2.new(1, -10, 0, 90)
+card1.Position = UDim2.new(0, 5, 0, 10)
+card1.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+card1.BorderSizePixel = 0
+card1.Parent = content
 
--- Reusable Card Creator
-local function makeCard(titleText, descText, height)
-    local card = Instance.new("Frame")
-    card.BackgroundColor3 = Color3.fromRGB(28, 28, 34)
-    card.Size = UDim2.new(1, 0, 0, height or 92)
-    card.BorderSizePixel = 0
+local card1Corner = Instance.new("UICorner")
+card1Corner.CornerRadius = UDim.new(0, 8)
+card1Corner.Parent = card1
 
-    local cCorner = Instance.new("UICorner")
-    cCorner.CornerRadius = UDim.new(0, 10)
-    cCorner.Parent = card
+local card1Stroke = Instance.new("UIStroke")
+card1Stroke.Color = Color3.fromRGB(30, 30, 38)
+card1Stroke.Thickness = 1
+card1Stroke.Parent = card1
 
-    local cStroke = Instance.new("UIStroke")
-    cStroke.Color = strokeColor
-    cStroke.Thickness = 1
-    cStroke.Parent = card
+local walkIcon = Instance.new("TextLabel")
+walkIcon.Size = UDim2.new(0, 50, 0, 50)
+walkIcon.Position = UDim2.new(0, 15, 0.5, -25)
+walkIcon.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+walkIcon.Text = "🚶"
+walkIcon.TextSize = 24
+walkIcon.Font = Enum.Font.SourceSansBold
+walkIcon.Parent = card1
 
-    local titleLbl = Instance.new("TextLabel")
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = titleText
-    titleLbl.Font = Enum.Font.GothamSemibold
-    titleLbl.TextSize = 16
-    titleLbl.TextColor3 = Color3.fromRGB(230, 235, 255)
-    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
-    titleLbl.Position = UDim2.new(0, 14, 0, 10)
-    titleLbl.Size = UDim2.new(1, -120, 0, 22)
-    titleLbl.Parent = card
+local walkIconCorner = Instance.new("UICorner")
+walkIconCorner.CornerRadius = UDim.new(0, 8)
+walkIconCorner.Parent = walkIcon
 
-    local descLbl = Instance.new("TextLabel")
-    descLbl.BackgroundTransparency = 1
-    descLbl.Text = descText or ""
-    descLbl.Font = Enum.Font.Gotham
-    descLbl.TextSize = 13
-    descLbl.TextColor3 = Color3.fromRGB(160, 170, 190)
-    descLbl.TextXAlignment = Enum.TextXAlignment.Left
-    descLbl.TextYAlignment = Enum.TextYAlignment.Top
-    descLbl.Position = UDim2.new(0, 14, 0, 34)
-    descLbl.Size = UDim2.new(1, -120, 0, 40)
-    descLbl.Parent = card
+local walkTitle = Instance.new("TextLabel")
+walkTitle.Size = UDim2.new(0.5, 0, 0, 25)
+walkTitle.Position = UDim2.new(0, 80, 0, 15)
+walkTitle.BackgroundTransparency = 1
+walkTitle.Text = "Auto Walk"
+walkTitle.TextColor3 = Color3.fromRGB(220, 220, 230)
+walkTitle.TextSize = 16
+walkTitle.Font = Enum.Font.SourceSansBold
+walkTitle.TextXAlignment = Enum.TextXAlignment.Left
+walkTitle.Parent = card1
 
-    return card, titleLbl, descLbl
-end
+local walkDesc = Instance.new("TextLabel")
+walkDesc.Size = UDim2.new(0.5, 0, 0, 20)
+walkDesc.Position = UDim2.new(0, 80, 0, 40)
+walkDesc.BackgroundTransparency = 1
+walkDesc.Text = "6 seconds auto movement"
+walkDesc.TextColor3 = Color3.fromRGB(130, 130, 140)
+walkDesc.TextSize = 13
+walkDesc.Font = Enum.Font.SourceSans
+walkDesc.TextXAlignment = Enum.TextXAlignment.Left
+walkDesc.Parent = card1
 
--- Toggle Pattern
-local function makeToggle(parent)
-    local holder = Instance.new("Frame")
-    holder.BackgroundTransparency = 1
-    holder.Size = UDim2.new(0, 80, 1, 0)
-    holder.Position = UDim2.new(1, -90, 0, 0)
-    holder.AnchorPoint = Vector2.new(1, 0)
-    holder.Parent = parent
+-- Toggle Switch for Auto Walk
+local toggle1 = Instance.new("Frame")
+toggle1.Size = UDim2.new(0, 50, 0, 26)
+toggle1.Position = UDim2.new(1, -65, 0.5, -13)
+toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+toggle1.Parent = card1
 
-    local toggle = Instance.new("TextButton")
-    toggle.BackgroundColor3 = Color3.fromRGB(50, 56, 66)
-    toggle.AutoButtonColor = false
-    toggle.Text = ""
-    toggle.Size = UDim2.new(0, 64, 0, 28)
-    toggle.Position = UDim2.new(1, -64, 0.5, -14)
-    toggle.Parent = holder
-    Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 14)
+local toggle1Corner = Instance.new("UICorner")
+toggle1Corner.CornerRadius = UDim.new(1, 0)
+toggle1Corner.Parent = toggle1
 
-    local nub = Instance.new("Frame")
-    nub.BackgroundColor3 = Color3.fromRGB(210, 215, 225)
-    nub.Size = UDim2.new(0, 22, 0, 22)
-    nub.Position = UDim2.new(0, 3, 0.5, -11)
-    nub.Parent = toggle
-    Instance.new("UICorner", nub).CornerRadius = UDim.new(1, 0)
+local toggle1Button = Instance.new("TextButton")
+toggle1Button.Size = UDim2.new(1, 0, 1, 0)
+toggle1Button.BackgroundTransparency = 1
+toggle1Button.Text = ""
+toggle1Button.Parent = toggle1
 
-    local on = false
-    local function setState(v, animate)
-        on = v
-        local bg = on and primaryColor or Color3.fromRGB(50, 56, 66)
-        local nubPos = on and UDim2.new(1, -25, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
-        if animate then
-            TweenService:Create(toggle, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = bg}):Play()
-            TweenService:Create(nub, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = nubPos}):Play()
-        else
-            toggle.BackgroundColor3 = bg
-            nub.Position = nubPos
-        end
-    end
+local toggle1Circle = Instance.new("Frame")
+toggle1Circle.Size = UDim2.new(0, 20, 0, 20)
+toggle1Circle.Position = UDim2.new(0, 3, 0.5, -10)
+toggle1Circle.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
+toggle1Circle.Parent = toggle1
 
-    toggle.MouseButton1Click:Connect(function()
-        setState(not on, true)
-        if toggle.Parent and toggle.Parent.Parent and toggle.Parent.Parent.Parent then
-            toggle.Parent.Parent.Parent:SetAttribute("ToggleState", on)
-        end
-    end)
+local toggle1CircleCorner = Instance.new("UICorner")
+toggle1CircleCorner.CornerRadius = UDim.new(1, 0)
+toggle1CircleCorner.Parent = toggle1Circle
 
-    setState(false, false)
-    return holder, function() return on end, function(v) setState(v, true) end
-end
+-- Feature Card 2: Aim Bot
+local card2 = Instance.new("Frame")
+card2.Size = UDim2.new(1, -10, 0, 90)
+card2.Position = UDim2.new(0, 5, 0, 110)
+card2.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+card2.BorderSizePixel = 0
+card2.Parent = content
 
--- Section: Auto Walk (6s)
-local autoCard = makeCard("🚶 Auto Walk (6s)", "وقتی روشن باشه، کاراکتر به‌صورت خودکار ۶ ثانیه راه می‌ره.")
-autoCard.Parent = content
-local autoToggleHolder, autoGet, autoSet = makeToggle(autoCard)
+local card2Corner = Instance.new("UICorner")
+card2Corner.CornerRadius = UDim.new(0, 8)
+card2Corner.Parent = card2
 
-local autoHint = Instance.new("TextLabel")
-autoHint.BackgroundTransparency = 1
-autoHint.Text = ""
-autoHint.Font = Enum.Font.Gotham
-autoHint.TextSize = 12
-autoHint.TextColor3 = accentSoft
-autoHint.TextXAlignment = Enum.TextXAlignment.Left
-autoHint.Position = UDim2.new(0, 14, 1, -22)
-autoHint.Size = UDim2.new(1, -28, 0, 18)
-autoHint.Parent = autoCard
+local card2Stroke = Instance.new("UIStroke")
+card2Stroke.Color = Color3.fromRGB(30, 30, 38)
+card2Stroke.Thickness = 1
+card2Stroke.Parent = card2
 
--- Section: Theme color
-local themeCard = makeCard("🎨 Theme Color", "برای تنوع رنگ تم را عوض کن. (تصادفی، ملایم و تاریک)")
+local aimIcon = Instance.new("TextLabel")
+aimIcon.Size = UDim2.new(0, 50, 0, 50)
+aimIcon.Position = UDim2.new(0, 15, 0.5, -25)
+aimIcon.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+aimIcon.Text = "🎯"
+aimIcon.TextSize = 24
+aimIcon.Font = Enum.Font.SourceSansBold
+aimIcon.Parent = card2
+
+local aimIconCorner = Instance.new("UICorner")
+aimIconCorner.CornerRadius = UDim.new(0, 8)
+aimIconCorner.Parent = aimIcon
+
+local aimTitle = Instance.new("TextLabel")
+aimTitle.Size = UDim2.new(0.5, 0, 0, 25)
+aimTitle.Position = UDim2.new(0, 80, 0, 15)
+aimTitle.BackgroundTransparency = 1
+aimTitle.Text = "Simple Aim Bot"
+aimTitle.TextColor3 = Color3.fromRGB(220, 220, 230)
+aimTitle.TextSize = 16
+aimTitle.Font = Enum.Font.SourceSansBold
+aimTitle.TextXAlignment = Enum.TextXAlignment.Left
+aimTitle.Parent = card2
+
+local aimDesc = Instance.new("TextLabel")
+aimDesc.Size = UDim2.new(0.5, 0, 0, 20)
+aimDesc.Position = UDim2.new(0, 80, 0, 40)
+aimDesc.BackgroundTransparency = 1
+aimDesc.Text = "Basic targeting assistant"
+aimDesc.TextColor3 = Color3.fromRGB(130, 130, 140)
+aimDesc.TextSize = 13
+aimDesc.Font = Enum.Font.SourceSans
+aimDesc.TextXAlignment = Enum.TextXAlignment.Left
+aimDesc.Parent = card2
+
+-- Toggle Switch for Aim Bot
+local toggle2 = Instance.new("Frame")
+toggle2.Size = UDim2.new(0, 50, 0, 26)
+toggle2.Position = UDim2.new(1, -65, 0.5, -13)
+toggle2.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+toggle2.Parent = card2
+
+local toggle2Corner = Instance.new("UICorner")
+toggle2Corner.CornerRadius = UDim.new(1, 0)
+toggle2Corner.Parent = toggle2
+
+local toggle2Button = Instance.new("TextButton")
+toggle2Button.Size = UDim2.new(1, 0, 1, 0)
+toggle2Button.BackgroundTransparency = 1
+toggle2Button.Text = ""
+toggle2Button.Parent = toggle2
+
+local toggle2Circle = Instance.new("Frame")
+toggle2Circle.Size = UDim2.new(0, 20, 0, 20)
+toggle2Circle.Position = UDim2.new(0, 3, 0.5, -10)
+toggle2Circle.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
+toggle2Circle.Parent = toggle2
+
+local toggle2CircleCorner = Instance.new("UICorner")
+toggle2CircleCorner.CornerRadius = UDim.new(1, 0)
+toggle2CircleCorner.Parent = toggle2Circle
+
+-- Theme Change Button
+local themeCard = Instance.new("Frame")
+themeCard.Size = UDim2.new(1, -10, 0, 60)
+themeCard.Position = UDim2.new(0, 5, 0, 210)
+themeCard.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
+themeCard.BorderSizePixel = 0
 themeCard.Parent = content
 
-local themeBtn = Instance.new("TextButton")
-themeBtn.Text = "تغییر رنگ تم"
-themeBtn.Font = Enum.Font.GothamBold
-themeBtn.TextSize = 14
-themeBtn.TextColor3 = Color3.fromRGB(240, 245, 255)
-themeBtn.AutoButtonColor = false
-themeBtn.BackgroundColor3 = primaryColor
-themeBtn.Size = UDim2.new(0, 160, 0, 32)
-themeBtn.Position = UDim2.new(1, -174, 0, 10)
-themeBtn.Parent = themeCard
-Instance.new("UICorner", themeBtn).CornerRadius = UDim.new(0, 8)
+local themeCorner = Instance.new("UICorner")
+themeCorner.CornerRadius = UDim.new(0, 8)
+themeCorner.Parent = themeCard
 
--- Section: Aim Assist Demo (ethical)
-local aimCard = makeCard("🎯 Aim Assist Demo (نمایشی)", "این فقط یک دمو بصریه و هیچ دخالتی در گیم‌پلی یا نشونه‌گیری واقعی نداره.")
-aimCard.Parent = content
-local aimToggleHolder, aimGet, aimSet = makeToggle(aimCard)
+local themeButton = Instance.new("TextButton")
+themeButton.Size = UDim2.new(1, -20, 0, 40)
+themeButton.Position = UDim2.new(0, 10, 0.5, -20)
+themeButton.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
+themeButton.Text = "Change Theme Color"
+themeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+themeButton.TextSize = 14
+themeButton.Font = Enum.Font.SourceSansBold
+themeButton.AutoButtonColor = false
+themeButton.Parent = themeCard
 
--- Crosshair overlay (visual-only)
-local crosshair = Instance.new("Frame")
-crosshair.Visible = false
-crosshair.Size = UDim2.new(0, 14, 0, 14)
-crosshair.AnchorPoint = Vector2.new(0.5, 0.5)
-crosshair.Position = UDim2.new(0.5, 0, 0.5, 0)
-crosshair.BackgroundColor3 = Color3.fromRGB(255,255,255)
-crosshair.BackgroundTransparency = 1
-crosshair.Parent = screenGui
+local themeButtonCorner = Instance.new("UICorner")
+themeButtonCorner.CornerRadius = UDim.new(0, 6)
+themeButtonCorner.Parent = themeButton
 
-local chDot = Instance.new("Frame", crosshair)
-chDot.Size = UDim2.new(0, 4, 0, 4)
-chDot.AnchorPoint = Vector2.new(0.5, 0.5)
-chDot.Position = UDim2.new(0.5, 0, 0.5, 0)
-chDot.BackgroundColor3 = primaryColor
-Instance.new("UICorner", chDot).CornerRadius = UDim.new(1, 0)
+-- Resize Handle
+local resizeHandle = Instance.new("Frame")
+resizeHandle.Size = UDim2.new(0, 20, 0, 20)
+resizeHandle.Position = UDim2.new(1, -20, 1, -20)
+resizeHandle.BackgroundTransparency = 1
+resizeHandle.Parent = mainFrame
 
-local chRing = Instance.new("Frame", crosshair)
-chRing.Size = UDim2.new(0, 14, 0, 14)
-chRing.AnchorPoint = Vector2.new(0.5, 0.5)
-chRing.Position = UDim2.new(0.5, 0, 0.5, 0)
-chRing.BackgroundColor3 = Color3.fromRGB(0,0,0)
-chRing.BackgroundTransparency = 1
-local chStroke = Instance.new("UIStroke", chRing)
-chStroke.Color = primaryColor
-chStroke.Thickness = 1
+local resizeIcon = Instance.new("TextLabel")
+resizeIcon.Size = UDim2.new(1, 0, 1, 0)
+resizeIcon.BackgroundTransparency = 1
+resizeIcon.Text = "◢"
+resizeIcon.TextColor3 = Color3.fromRGB(60, 60, 70)
+resizeIcon.TextSize = 16
+resizeIcon.Font = Enum.Font.SourceSans
+resizeIcon.Parent = resizeHandle
 
--- Resize handle
-local resizer = Instance.new("Frame")
-resizer.Name = "Resizer"
-resizer.Size = UDim2.new(0, 14, 0, 14)
-resizer.Position = UDim2.new(1, -10, 1, -10)
-resizer.AnchorPoint = Vector2.new(1,1)
-resizer.BackgroundColor3 = Color3.fromRGB(40, 44, 54)
-resizer.Parent = window
-Instance.new("UICorner", resizer).CornerRadius = UDim.new(0, 3)
-local resizerStroke = Instance.new("UIStroke", resizer)
-resizerStroke.Color = strokeColor
+-- Functions
+local function createTween(obj, props, duration)
+    local info = TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    return TweenService:Create(obj, info, props)
+end
 
--- Dragging (custom, bug-free)
-do
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        local newPos = UDim2.fromOffset(startPos.X.Offset + delta.X, startPos.Y.Offset + delta.Y)
-
-        local camera = workspace.CurrentCamera
-        if camera then
-            local vps = camera.ViewportSize
-            local w = window.AbsoluteSize.X
-            local h = window.AbsoluteSize.Y
-
-            local minX = 0
-            local minY = 0
-            local maxX = vps.X - w
-            local maxY = vps.Y - h
-
-            newPos = UDim2.fromOffset(
-                clamp(newPos.X.Offset, minX, maxX),
-                clamp(newPos.Y.Offset, minY, maxY)
+-- Make Frame Draggable
+local function makeDraggable(frame, handle)
+    local dragStart = nil
+    local startPos = nil
+    
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isDragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    isDragging = false
+                end
+            end)
+        end
+    end)
+    
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
             )
         end
+    end)
+end
 
-        window.Position = newPos
-    end
-
-    header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = window.Position
+-- Make Frame Resizable
+local function makeResizable(frame, handle)
+    local resizeStart = nil
+    local startSize = nil
+    
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isResizing = true
+            resizeStart = input.Position
+            startSize = frame.Size
+            
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
+                    isResizing = false
                 end
             end)
         end
     end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            update(input)
+    
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and isResizing then
+            local delta = input.Position - resizeStart
+            local newWidth = math.max(300, startSize.X.Offset + delta.X)
+            local newHeight = math.max(200, startSize.Y.Offset + delta.Y)
+            
+            frame.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
 end
 
--- Resizing (bottom-right handle)
-do
-    local resizing = false
-    local startSize, startPos, startInputPos
-    local minW, minH = 360, 220
-    local maxW, maxH = 800, 520
+makeDraggable(mainFrame, header)
+makeResizable(mainFrame, resizeHandle)
 
-    local function applyResize(input)
-        local delta = input.Position - startInputPos
-        local newW = clamp(startSize.X.Offset + delta.X, minW, maxW)
-        local newH = clamp(startSize.Y.Offset + delta.Y, minH, maxH)
-
-        -- Keep inside screen if possible
-        local camera = workspace.CurrentCamera
-        if camera then
-            local vps = camera.ViewportSize
-            newW = clamp(newW, minW, math.max(minW, vps.X - window.Position.X.Offset))
-            newH = clamp(newH, minH, math.max(minH, vps.Y - window.Position.Y.Offset))
-        end
-
-        window.Size = UDim2.fromOffset(newW, newH)
-    end
-
-    resizer.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = true
-            startSize = window.Size
-            startPos = window.Position
-            startInputPos = input.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    resizing = false
-                end
-            end)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            applyResize(input)
-        end
-    end)
-end
-
--- Interactions
-local menuOpen = true
-local function setMenu(open)
-    menuOpen = open
-    window.Visible = open
-    TweenService:Create(dock, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        ImageColor3 = open and Color3.new(1,1,1) or primaryColor
-    }):Play()
-end
-
-dock.MouseButton1Click:Connect(function()
-    setMenu(not menuOpen)
-end)
-
-btnMin.MouseButton1Click:Connect(function()
-    setMenu(false)
-end)
-
-btnClose.MouseButton1Click:Connect(function()
-    setMenu(false)
-end)
-
--- Theme change
-local function setPrimaryColor(c)
-    primaryColor = c
-    dockStroke.Color = c
-    headIcon.ImageColor3 = Color3.fromRGB(200, 220, 255)
-    chDot.BackgroundColor3 = c
-    chStroke.Color = c
-    themeBtn.BackgroundColor3 = c
-end
-
-local function randomTheme()
-    local hue = math.random()
-    local sat = 0.65 + math.random() * 0.25
-    local val = 0.85
-    local c = Color3.fromHSV(hue, sat, val)
-    setPrimaryColor(c)
-end
-
-themeBtn.MouseButton1Click:Connect(randomTheme)
-
--- Hover FX helper
-local function hoverScale(btn)
-    local base = btn.Size
-    btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(base.X.Scale, base.X.Offset + 4, base.Y.Scale, base.Y.Offset + 2)}):Play()
-    end)
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = base}):Play()
-    end)
-end
-hoverScale(themeBtn)
-hoverScale(btnMin)
-hoverScale(btnClose)
-hoverScale(dock)
-
--- Auto Walk (6s) logic
-local autoWalking = false
-local function startAutoWalk()
-    if autoWalking then return end
-    autoWalking = true
-    autoHint.Text = "در حال راه رفتن خودکار..."
-    local _, humanoid = safeWaitForHumanoid()
-
-    local elapsed = 0
-    local duration = 6
-    local conn
-    conn = RunService.RenderStepped:Connect(function(dt)
-        elapsed += dt
-        -- حرکت به سمت جلو نسبت به دوربین (ملايم و بدون لگ)
-        if humanoid and humanoid.Parent then
-            humanoid:Move(Vector3.new(0, 0, -1), true)
-        end
-        if elapsed >= duration or not autoWalking then
-            if conn then conn:Disconnect() end
-            if humanoid and humanoid.Parent then
-                humanoid:Move(Vector3.new(0, 0, 0), true)
+-- Auto Walk Function
+local function toggleAutoWalk()
+    autoWalking = not autoWalking
+    
+    if autoWalking then
+        toggle1.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
+        createTween(toggle1Circle, {Position = UDim2.new(1, -23, 0.5, -10)}, 0.2):Play()
+        
+        spawn(function()
+            local startTime = tick()
+            while autoWalking and tick() - startTime < 6 do
+                humanoid:Move(Vector3.new(0, 0, -1))
+                wait()
             end
+            humanoid:Move(Vector3.new(0, 0, 0))
             autoWalking = false
-            autoSet(false)
-            autoHint.Text = "پایان راه رفتن خودکار."
-            task.delay(1.2, function()
-                if autoHint then autoHint.Text = "" end
-            end)
-        end
+            toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+            createTween(toggle1Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
+        end)
+    else
+        toggle1.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+        createTween(toggle1Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
+    end
+end
+
+-- Simple Aim Bot Function
+local function toggleAimBot()
+    aimBotEnabled = not aimBotEnabled
+    
+    if aimBotEnabled then
+        toggle2.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
+        createTween(toggle2Circle, {Position = UDim2.new(1, -23, 0.5, -10)}, 0.2):Play()
+        
+        -- Simple aim bot logic (educational purpose only)
+        spawn(function()
+            while aimBotEnabled do
+                -- This is just a placeholder - real implementation would be more complex
+                print("Aim Bot Active (Simulation)")
+                wait(0.1)
+            end
+        end)
+    else
+        toggle2.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+        createTween(toggle2Circle, {Position = UDim2.new(0, 3, 0.5, -10)}, 0.2):Play()
+    end
+end
+
+-- Theme Change Function
+local function changeTheme()
+    local hue = math.random()
+    local newColor = Color3.fromHSV(hue, 0.6, 1)
+    
+    logoIcon.TextColor3 = newColor
+    logoStroke.Color = newColor
+    title.TextColor3 = newColor
+    titleGlow.TextColor3 = newColor
+    content.ScrollBarImageColor3 = newColor
+    themeButton.BackgroundColor3 = newColor
+    
+    -- Animate theme change
+    createTween(themeButton, {Size = UDim2.new(1, -10, 0, 40)}, 0.1):Play()
+    wait(0.1)
+    createTween(themeButton, {Size = UDim2.new(1, -20, 0, 40)}, 0.1):Play()
+end
+
+-- Event Connections
+logoButton.MouseButton1Click:Connect(function()
+    menuOpen = not menuOpen
+    mainFrame.Visible = menuOpen
+    
+    if menuOpen then
+        mainFrame.Size = UDim2.new(0, 0, 0, 0)
+        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 350)}, 0.4):Play()
+    end
+end)
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 45)}, 0.3):Play()
+    content.Visible = false
+end)
+
+header.MouseButton1Click:Connect(function()
+    if not content.Visible then
+        content.Visible = true
+        createTween(mainFrame, {Size = UDim2.new(0, 450, 0, 350)}, 0.3):Play()
+    end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    createTween(mainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 0.3):Play()
+    wait(0.3)
+    mainFrame.Visible = false
+    menuOpen = false
+end)
+
+toggle1Button.MouseButton1Click:Connect(toggleAutoWalk)
+toggle2Button.MouseButton1Click:Connect(toggleAimBot)
+themeButton.MouseButton1Click:Connect(changeTheme)
+
+-- Hover Effects
+local function addHoverEffect(button, hoverColor, normalColor)
+    button.MouseEnter:Connect(function()
+        createTween(button, {BackgroundColor3 = hoverColor}, 0.2):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        createTween(button, {BackgroundColor3 = normalColor}, 0.2):Play()
     end)
 end
 
-autoCard:GetAttributeChangedSignal("ToggleState"):Connect(function()
-    local state = autoCard:GetAttribute("ToggleState")
-    if state and not autoWalking then
-        startAutoWalk()
-    end
-end)
+addHoverEffect(minimizeBtn, Color3.fromRGB(255, 200, 70), Color3.fromRGB(255, 180, 50))
+addHoverEffect(closeBtn, Color3.fromRGB(255, 90, 90), Color3.fromRGB(255, 70, 70))
 
--- Aim Assist Demo (visual-only, non-cheat)
-local aimPulseConn
-local function setAimDemo(on)
-    crosshair.Visible = on
-    if aimPulseConn then aimPulseConn:Disconnect() aimPulseConn = nil end
-    if on then
-        local t = 0
-        aimPulseConn = RunService.RenderStepped:Connect(function(dt)
-            t += dt * 2
-            local r = 7 + math.sin(t) * 2
-            chRing.Size = UDim2.new(0, r*2, 0, r*2)
-            chStroke.Thickness = 1 + 0.5 * math.max(0, math.cos(t))
-        end)
-    end
-end
-
-aimCard:GetAttributeChangedSignal("ToggleState"):Connect(function()
-    local state = aimCard:GetAttribute("ToggleState")
-    setAimDemo(state and true or false)
-end)
-
--- Character refresh safety
-player.CharacterAdded:Connect(function()
-    -- اگر در حال راه رفتن بود، ایمن متوقف شود
-    autoWalking = false
-    autoSet(false)
-end)
-
--- Initial state
-setMenu(true)
-
--- Notes for you:
--- - برای لوگو/تم تصویر دلخواه، Image های dock و headIcon و pattern را با rbxassetid://ID خودت جایگزین کن.
--- - سیستم Drag/Resize کاملاً اختصاصی و بدون Draggable است تا باگ نده.
--- - Aim Assist Demo صرفاً نمایشی است و هیچ کنترلی روی هدف‌گیری یا دنیا اعمال نمی‌کند (غیرفریب‌کارانه).
+print("✨ Ultra Menu v3.0 - Loaded Successfully!")
