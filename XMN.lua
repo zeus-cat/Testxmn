@@ -1,4 +1,4 @@
--- منوی رنگی رندوم برای روبلاکس
+-- منی رنگی رندوم برای روبلاکس
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
