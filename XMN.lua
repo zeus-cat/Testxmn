@@ -447,19 +447,138 @@ player.CharacterAdded:Connect(function(newChar)
     freeCamEnabled = false
 end)
 
+-- ✅ تغییر #1: پنل تلپورت (ظاهر میشه وقتی تلپورت فعال شد)
+local teleportGui = Instance.new("Frame")
+teleportGui.Name = "TeleportPanel"
+teleportGui.Size = UDim2.new(0, 220, 0, 140)
+teleportGui.Position = UDim2.new(0.5, -110, 0.75, -70)
+teleportGui.BackgroundColor3 = Color3.fromRGB(15,15,20)
+teleportGui.BorderSizePixel = 0
+teleportGui.Visible = false
+teleportGui.Active = true
+teleportGui.Draggable = true
+teleportGui.Parent = screenGui
+
+local tpCorner = Instance.new("UICorner")
+tpCorner.CornerRadius = UDim.new(0, 12)
+tpCorner.Parent = teleportGui
+
+local tpStroke = Instance.new("UIStroke")
+tpStroke.Color = Color3.fromRGB(130,180,255)
+tpStroke.Transparency = 0.5
+tpStroke.Thickness = 2
+tpStroke.Parent = teleportGui
+
+-- 📏 Distance Input
+local distanceFrame = Instance.new("Frame")
+distanceFrame.Size = UDim2.new(0, 110, 0, 30)
+distanceFrame.Position = UDim2.new(0.5, -55, 0, 10)
+distanceFrame.BackgroundColor3 = Color3.fromRGB(25,25,32)
+distanceFrame.Parent = teleportGui
+
+local dfCorner = Instance.new("UICorner")
+dfCorner.CornerRadius = UDim.new(0, 6)
+dfCorner.Parent = distanceFrame
+
+local distanceInput = Instance.new("TextBox")
+distanceInput.Size = UDim2.new(1,-10,1,0)
+distanceInput.Position = UDim2.new(0,5,0,0)
+distanceInput.BackgroundTransparency = 1
+distanceInput.Text = tostring(teleportDistance)
+distanceInput.PlaceholderText = "Distance"
+distanceInput.TextColor3 = Color3.fromRGB(255,255,255)
+distanceInput.TextSize = 14
+distanceInput.Font = Enum.Font.SourceSans
+distanceInput.ClearTextOnFocus = false
+distanceInput.Parent = distanceFrame
+
+distanceInput.FocusLost:Connect(function(enterPressed)
+    if not enterPressed then return end
+    local num = tonumber(distanceInput.Text)
+    if num and num > 0 and num <= 10000 then
+        teleportDistance = math.floor(num)
+    else
+        distanceInput.Text = tostring(teleportDistance)
+    end
+end)
+
+-- ⬆️⬇️ دکمه‌های جلو و عقب
+local forwardBtn = Instance.new("TextButton")
+forwardBtn.Size = UDim2.new(0, 90, 0, 36)
+forwardBtn.Position = UDim2.new(0, 10, 0, 55)
+forwardBtn.BackgroundColor3 = Color3.fromRGB(25,25,32)
+forwardBtn.Text = "⬆ جلو"
+forwardBtn.TextColor3 = Color3.fromRGB(130,180,255)
+forwardBtn.TextSize = 16
+forwardBtn.Font = Enum.Font.SourceSansBold
+forwardBtn.Parent = teleportGui
+
+local fCorner = Instance.new("UICorner"); fCorner.CornerRadius = UDim.new(0,8); fCorner.Parent = forwardBtn
+
+local backwardBtn = Instance.new("TextButton")
+backwardBtn.Size = UDim2.new(0, 90, 0, 36)
+backwardBtn.Position = UDim2.new(1, -100, 0, 55)
+backwardBtn.BackgroundColor3 = Color3.fromRGB(25,25,32)
+backwardBtn.Text = "⬇ عقب"
+backwardBtn.TextColor3 = Color3.fromRGB(130,180,255)
+backwardBtn.TextSize = 16
+backwardBtn.Font = Enum.Font.SourceSansBold
+backwardBtn.Parent = teleportGui
+
+local bCorner = Instance.new("UICorner"); bCorner.CornerRadius = UDim.new(0,8); bCorner.Parent = backwardBtn
+
+-- 🔘 تابع toggle برای تلپورت (فعال/غیرفعال کردن پنل)
+local function toggleTeleport()
+    teleportEnabled = not teleportEnabled
+    teleportGui.Visible = teleportEnabled
+    return teleportEnabled
+end
+
+-- ✅ تغییر #2: دکمه Unfreeze جداگانه (همیشه قابل دسترس)
+local unfreezeBtn = Instance.new("TextButton")
+unfreezeBtn.Name = "UnfreezeButton"
+unfreezeBtn.Size = UDim2.new(0, 100, 0, 30)
+unfreezeBtn.Position = UDim2.new(0.02, 0, 0.95, -30)
+unfreezeBtn.AnchorPoint = Vector2.new(0, 1)
+unfreezeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+unfreezeBtn.Text = "Unfreeze"
+unfreezeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+unfreezeBtn.TextSize = 14
+unfreezeBtn.Font = Enum.Font.SourceSansBold
+unfreezeBtn.Visible = true
+unfreezeBtn.ZIndex = 10
+unfreezeBtn.Parent = screenGui
+
+local ufCorner = Instance.new("UICorner")
+ufCorner.CornerRadius = UDim.new(0, 6)
+ufCorner.Parent = unfreezeBtn
+
+unfreezeBtn.MouseButton1Click:Connect(function()
+    if freezeEnabled then
+        freezeEnabled = false
+        if freezeConn then
+            freezeConn:Disconnect()
+            freezeConn = nil
+        end
+        freezePosition = nil
+        -- به‌روزرسانی دکمه Freeze در منو (اختیاری)
+        print("📍 Unfrozen manually!")
+    end
+end)
+
+-- 🔗 اتصال دکمه‌ها
+forwardBtn.MouseButton1Click:Connect(function() enhancedTeleport("forward") end)
+backwardBtn.MouseButton1Click:Connect(function() enhancedTeleport("backward") end)
+
 -- 🧩 Add All Features
 featureCard("🛡", "God Mode", "زنده می‌مونی، نمیمیری", toggleGodMode)
 featureCard("🪂", "Fly Mode", "پرواز با کلیدهای WASD + Space", toggleFly)
 featureCard("👁", "Free Cam", "دوربین آزاد بدون کاراکتر", toggleFreeCam)
-featureCard("🎯", "Teleport", "جلو/عقب با حرکت طبیعی", function()
-    teleportEnabled = not teleportEnabled
-    teleportGui.Visible = teleportEnabled
-    return teleportEnabled
-end)
+featureCard("🎯", "Teleport", "فعال کردن پنل تلپورت", toggleTeleport)  -- تغییر این خط
 featureCard("🔒", "Freeze", "ثابت کردن موقعیت", toggleFreeze)
 featureCard("🔍", "ESP", "نمایش بازیکنان نزدیک", toggleESP)
 
--- 🚪 Window Controls
+-- 🚪 Window Controls (بدون تغییر)
 logoButton.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     mainFrame.Visible = menuOpen
@@ -505,6 +624,8 @@ end
 hover(minimizeBtn, Color3.fromRGB(255,200,70), Color3.fromRGB(255,180,50))
 hover(closeBtn, Color3.fromRGB(255,90,90), Color3.fromRGB(255,70,70))
 hover(destroyBtn, Color3.fromRGB(130,130,130), Color3.fromRGB(100,100,100))
+hover(forwardBtn, Color3.fromRGB(35,35,42), Color3.fromRGB(25,25,32))
+hover(backwardBtn, Color3.fromRGB(35,35,42), Color3.fromRGB(25,25,32))
 
 -- 🌀 Logo Animation
 task.spawn(function()
@@ -516,8 +637,6 @@ task.spawn(function()
     end
 end)
 
--- ✅ Final Message
-print("🌌 GOD MENU v10.1 'Full Scroll' loaded")
-print("✔ All features working")
-print("✔ Scrollable menu fixed")
-print("✔ Use in private games only")
+print("✅ GOD MENU v10.1 + Teleport Panel & Unfreeze Button loaded")
+print("- Use 'Teleport' to show Forward/Back buttons")
+print("- 'Unfreeze' button always available at bottom-left")
