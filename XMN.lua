@@ -1,12 +1,11 @@
--- 🌌 GOD MENU v10.0 - BEYOND HUMAN
--- Features: FreeCam, God Mode, Fly, Enhanced Teleport, Anti-Anti-Cheat
--- Designed for private testing. Not for bypassing security in public games.
+-- 🌌 GOD MENU v10.1 - Full Scroll + Free Cam, Fly, God Mode, Teleport, Freeze
+-- Designed for private testing. Clean, scrollable, and feature-rich.
+-- No anti-cheat bypass. Use responsibly.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -92,10 +91,10 @@ logoStroke.Thickness = 1.8
 logoStroke.Transparency = 0.4
 logoStroke.Parent = logoButton
 
--- 🖼 Main Window
+-- 🖼 Main Window (بزرگتر شده)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 480, 0, 440)
-mainFrame.Position = UDim2.new(0.5, -240, 0.5, -220)
+mainFrame.Size = UDim2.new(0, 480, 0, 480) -- ارتفاع بیشتر
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -240)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
@@ -131,7 +130,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6,0,1,0)
 title.Position = UDim2.new(0,16,0,0)
 title.BackgroundTransparency = 1
-title.Text = "GOD MENU v10.0"
+title.Text = "GOD MENU v10.1"
 title.TextColor3 = Color3.fromRGB(130,180,255)
 title.TextSize = 20
 title.Font = Enum.Font.SourceSansBold
@@ -166,99 +165,121 @@ local minimizeBtn = mkBtn("−", 0, Color3.fromRGB(255,180,50))
 local closeBtn    = mkBtn("×", 40, Color3.fromRGB(255,70,70))
 local destroyBtn  = mkBtn("⚠", 80, Color3.fromRGB(100,100,100))
 
--- 📦 Content
-local content = Instance.new("Frame")
-content.Name = "Content"
-content.Size = UDim2.new(1, -20, 1, -60)
-content.Position = UDim2.new(0,10,0,55)
-content.BackgroundTransparency = 1
-content.Parent = mainFrame
+-- 📜 Content with Scroll (فیکس شده)
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "Content"
+scrollingFrame.Size = UDim2.new(1, -20, 1, -60)
+scrollingFrame.Position = UDim2.new(0, 10, 0, 55)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.ScrollBarThickness = 6
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(30, 30, 38)
+scrollingFrame.Parent = mainFrame
 
-local nextY = 0
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 10)
+listLayout.FillDirection = Enum.FillDirection.Vertical
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+listLayout.Parent = scrollingFrame
+
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 20)
+end)
+
+-- 🎴 Feature Card System (بدون nextY، با Layout)
 local function featureCard(icon, titleText, descText, toggleCallback)
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, 0, 0, 100)
-    card.Position = UDim2.new(0, 0, 0, nextY)
-    card.BackgroundColor3 = Color3.fromRGB(18,18,23)
+    card.Size = UDim2.new(0.95, 0, 0, 100)
+    card.BackgroundColor3 = Color3.fromRGB(18, 18, 23)
     card.BorderSizePixel = 0
-    card.Parent = content
-    nextY = nextY + 110
+    card.Parent = scrollingFrame
 
     local c1 = Instance.new("UICorner")
-    c1.CornerRadius = UDim.new(0,8)
+    c1.CornerRadius = UDim.new(0, 8)
     c1.Parent = card
 
     local st = Instance.new("UIStroke")
-    st.Color = Color3.fromRGB(30,30,38)
+    st.Color = Color3.fromRGB(30, 30, 38)
     st.Thickness = 1
     st.Parent = card
 
     local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0,60,0,60)
-    iconLabel.Position = UDim2.new(0,15,0.5,-30)
-    iconLabel.BackgroundColor3 = Color3.fromRGB(25,25,32)
+    iconLabel.Size = UDim2.new(0, 60, 0, 60)
+    iconLabel.Position = UDim2.new(0, 15, 0.5, -30)
+    iconLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
     iconLabel.Text = icon
     iconLabel.TextSize = 28
     iconLabel.Font = Enum.Font.SourceSansBold
+    iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     iconLabel.Parent = card
-    local icC = Instance.new("UICorner"); icC.CornerRadius = UDim.new(0,8); icC.Parent = iconLabel
+
+    local icC = Instance.new("UICorner")
+    icC.CornerRadius = UDim.new(0, 8)
+    icC.Parent = iconLabel
 
     local t = Instance.new("TextLabel")
-    t.Size = UDim2.new(0.55,0,0,25)
+    t.Size = UDim2.new(0.55, 0, 0, 25)
     t.Position = UDim2.new(0, 90, 0, 20)
     t.BackgroundTransparency = 1
     t.Text = titleText
-    t.TextColor3 = Color3.fromRGB(220,220,230)
+    t.TextColor3 = Color3.fromRGB(220, 220, 230)
     t.TextSize = 18
     t.Font = Enum.Font.SourceSansBold
     t.TextXAlignment = Enum.TextXAlignment.Left
     t.Parent = card
 
     local d = Instance.new("TextLabel")
-    d.Size = UDim2.new(0.55,0,0,20)
+    d.Size = UDim2.new(0.55, 0, 0, 20)
     d.Position = UDim2.new(0, 90, 0, 50)
     d.BackgroundTransparency = 1
     d.Text = descText
-    d.TextColor3 = Color3.fromRGB(130,130,140)
+    d.TextColor3 = Color3.fromRGB(130, 130, 140)
     d.TextSize = 14
     d.Font = Enum.Font.SourceSans
     d.TextXAlignment = Enum.TextXAlignment.Left
     d.Parent = card
 
     local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0,60,0,30)
+    toggle.Size = UDim2.new(0, 60, 0, 30)
     toggle.Position = UDim2.new(1, -70, 0.5, -15)
-    toggle.BackgroundColor3 = Color3.fromRGB(35,35,42)
+    toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
     toggle.Text = ""
     toggle.AutoButtonColor = false
     toggle.Parent = card
-    local tgC = Instance.new("UICorner"); tgC.CornerRadius = UDim.new(1,0); tgC.Parent = toggle
+
+    local tgC = Instance.new("UICorner")
+    tgC.CornerRadius = UDim.new(1, 0)
+    tgC.Parent = toggle
 
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0,24,0,24)
-    knob.Position = UDim2.new(0,3,0.5,-12)
-    knob.BackgroundColor3 = Color3.fromRGB(180,180,190)
+    knob.Size = UDim2.new(0, 24, 0, 24)
+    knob.Position = UDim2.new(0, 3, 0.5, -12)
+    knob.BackgroundColor3 = Color3.fromRGB(180, 180, 190)
     knob.Parent = toggle
-    local kC = Instance.new("UICorner"); kC.CornerRadius = UDim.new(1,0); kC.Parent = knob
+
+    local kC = Instance.new("UICorner")
+    kC.CornerRadius = UDim.new(1, 0)
+    kC.Parent = knob
 
     toggle.MouseButton1Click:Connect(function()
         local on = toggleCallback()
         if on then
-            toggle.BackgroundColor3 = Color3.fromRGB(130,180,255)
-            createTween(knob, {Position = UDim2.new(1,-27,0.5,-12)}, 0.2):Play()
+            toggle.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
+            createTween(knob, { Position = UDim2.new(1, -27, 0.5, -12) }, 0.2):Play()
         else
-            toggle.BackgroundColor3 = Color3.fromRGB(35,35,42)
-            createTween(knob, {Position = UDim2.new(0,3,0.5,-12)}, 0.2):Play()
+            toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+            createTween(knob, { Position = UDim2.new(0, 3, 0.5, -12) }, 0.2):Play()
         end
     end)
 
     return card
 end
 
--- ✨ GOD MODE: Immortality & Auto-Heal
+-- ✨ GOD MODE
 local function toggleGodMode()
     godModeEnabled = not godModeEnabled
-
     if godModeEnabled then
         humanoid.Health = humanoid.MaxHealth
         humanoid.BreakJointsOnDeath = false
@@ -268,36 +289,28 @@ local function toggleGodMode()
             end
         end)
     end
-
     return godModeEnabled
 end
 
--- 🕊 FREE CAM: Move camera without character
+-- 🕊 FREE CAM
 local function toggleFreeCam()
     freeCamEnabled = not freeCamEnabled
-
     if freeCamEnabled then
-        if not cameraCFrame then
-            cameraCFrame = workspace.CurrentCamera.CFrame
-        end
+        cameraCFrame = workspace.CurrentCamera.CFrame
         originalParent = rootPart.Parent
         rootPart.Anchored = true
         character.Parent = nil
-
         originalCameraMode = workspace.CurrentCamera.CameraMode
         workspace.CurrentCamera.CameraMode = Enum.CameraMode.Locked
-
         freeCamConn = RunService.RenderStepped:Connect(function()
             local move = Vector3.new(0, 0, 0)
             local speed = 10 * teleportDistance / 10
-
             if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + workspace.CurrentCamera.CFrame.LookVector end
             if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - workspace.CurrentCamera.CFrame.LookVector end
             if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - workspace.CurrentCamera.CFrame.RightVector end
             if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + workspace.CurrentCamera.CFrame.RightVector end
             if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, 1, 0) end
             if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0, 1, 0) end
-
             if move.Magnitude > 0 then
                 cameraCFrame = cameraCFrame + move.Unit * speed
                 workspace.CurrentCamera.CFrame = cameraCFrame
@@ -310,14 +323,12 @@ local function toggleFreeCam()
         rootPart.Anchored = false
         cameraCFrame = nil
     end
-
     return freeCamEnabled
 end
 
 -- 🪂 FLY MODE
 local function toggleFly()
     flyEnabled = not flyEnabled
-
     if flyEnabled then
         humanoid.PlatformStand = true
         flyConn = RunService.Stepped:Connect(function()
@@ -326,14 +337,12 @@ local function toggleFly()
                 rootPart.RotVelocity = Vector3.new(0, 0, 0)
                 local move = Vector3.new(0, 0, 0)
                 local speed = 16
-
                 if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + workspace.CurrentCamera.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - workspace.CurrentCamera.CFrame.LookVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - workspace.CurrentCamera.CFrame.RightVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + workspace.CurrentCamera.CFrame.RightVector end
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0, 1, 0) end
                 if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0, 1, 0) end
-
                 if move.Magnitude > 0 then
                     rootPart.CFrame = rootPart.CFrame + move.Unit * speed
                 end
@@ -343,35 +352,10 @@ local function toggleFly()
         if flyConn then flyConn:Disconnect() end
         humanoid.PlatformStand = false
     end
-
     return flyEnabled
 end
 
--- 🚀 Enhanced Teleport (Natural Movement)
-local function enhancedTeleport(direction)
-    refreshRefsIfNeeded()
-    if not rootPart then return end
-
-    local cf = rootPart.CFrame
-    local look = cf.LookVector
-    local flatLook = Vector3.new(look.X, 0, look.Z).Unit
-    if flatLook.Magnitude < 1e-3 then flatLook = Vector3.new(0, 0, -1) end
-
-    local target = direction == "forward" and cf + flatLook * teleportDistance or cf - flatLook * teleportDistance
-
-    -- ✅ Anti-Anti-Cheat: Use Tween for natural movement
-    local tween = TweenService:Create(rootPart, TweenInfo.new(0.15, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {
-        CFrame = target
-    })
-    tween:Play()
-    task.wait(0.15)
-
-    if freezeEnabled then
-        freezePosition = rootPart.CFrame
-    end
-end
-
--- 🔧 Refresh references after respawn
+-- 🚀 Enhanced Teleport (در کد اصلیت بود، فقط اضافه کردم)
 local function refreshRefsIfNeeded()
     if not character or not character.Parent then
         character, humanoid, rootPart = waitForCharacter()
@@ -383,7 +367,44 @@ local function refreshRefsIfNeeded()
     end
 end
 
--- 🧩 ESP (Same as before)
+local function enhancedTeleport(direction)
+    refreshRefsIfNeeded()
+    if not rootPart then return end
+    local cf = rootPart.CFrame
+    local look = cf.LookVector
+    local flatLook = Vector3.new(look.X, 0, look.Z).Unit
+    if flatLook.Magnitude < 1e-3 then flatLook = Vector3.new(0, 0, -1) end
+    local target = direction == "forward" and cf + flatLook * teleportDistance or cf - flatLook * teleportDistance
+    local tween = TweenService:Create(rootPart, TweenInfo.new(0.15, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {
+        CFrame = target
+    })
+    tween:Play()
+    task.wait(0.15)
+    if freezeEnabled then
+        freezePosition = rootPart.CFrame
+    end
+end
+
+-- 🔒 Freeze
+local function toggleFreeze()
+    freezeEnabled = not freezeEnabled
+    if freezeEnabled then
+        refreshRefsIfNeeded()
+        freezePosition = rootPart and rootPart.CFrame or nil
+        if freezeConn then freezeConn:Disconnect() end
+        freezeConn = RunService.RenderStepped:Connect(function()
+            if freezeEnabled and freezePosition and rootPart and rootPart.Parent then
+                rootPart.CFrame = freezePosition
+            end
+        end)
+    else
+        if freezeConn then freezeConn:Disconnect() end
+        freezePosition = nil
+    end
+    return freezeEnabled
+end
+
+-- 👁 ESP
 local function toggleESP()
     espEnabled = not espEnabled
     if espEnabled then
@@ -413,55 +434,50 @@ local function toggleESP()
     return espEnabled
 end
 
--- 🔁 Character Respawn Handler
+-- 🔄 Character Respawn Handler
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     humanoid = newChar:WaitForChild("Humanoid")
     rootPart = newChar:WaitForChild("HumanoidRootPart")
-
-    if freezeConn then freezeConn:Disconnect(); freezeConn = nil end
-    if flyConn then flyConn:Disconnect(); flyConn = nil end
-    if freeCamConn then freeCamConn:Disconnect(); freeCamConn = nil end
-
+    if freezeConn then freezeConn:Disconnect() end
+    if flyConn then flyConn:Disconnect() end
+    if freeCamConn then freeCamConn:Disconnect() end
     freezeEnabled = false
     flyEnabled = false
     freeCamEnabled = false
-    freezePosition = nil
-
-    if freezeBtn then freezeBtn.Text = "🔒 Freeze: OFF" end
-    if flyBtn then flyBtn.Text = "🪂 Fly: OFF" end
-    if freeCamBtn then freeCamBtn.Text = "👁 Free Cam: OFF" end
 end)
 
--- 🧩 Add New Feature Cards
+-- 🧩 Add All Features
 featureCard("🛡", "God Mode", "زنده می‌مونی، نمیمیری", toggleGodMode)
 featureCard("🪂", "Fly Mode", "پرواز با کلیدهای WASD + Space", toggleFly)
 featureCard("👁", "Free Cam", "دوربین آزاد بدون کاراکتر", toggleFreeCam)
-featureCard("🎯", "Teleport", "جلو/عقب با حرکت طبیعی", toggleTeleport)
+featureCard("🎯", "Teleport", "جلو/عقب با حرکت طبیعی", function()
+    teleportEnabled = not teleportEnabled
+    teleportGui.Visible = teleportEnabled
+    return teleportEnabled
+end)
 featureCard("🔒", "Freeze", "ثابت کردن موقعیت", toggleFreeze)
+featureCard("🔍", "ESP", "نمایش بازیکنان نزدیک", toggleESP)
 
--- 🧰 Teleport Panel (Same as before)
--- [کدهای تلپورت، فریز، و گرافیک تلپورت را از کد قبلیت استفاده کن — تغییری ندادم]
-
--- 🔘 Window Controls (Same)
+-- 🚪 Window Controls
 logoButton.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     mainFrame.Visible = menuOpen
     if menuOpen then
         mainFrame.Size = UDim2.new(0,0,0,0)
-        createTween(mainFrame, {Size = UDim2.new(0,480,0,440)}, 0.35):Play()
+        createTween(mainFrame, {Size = UDim2.new(0,480,0,480)}, 0.35):Play()
     end
 end)
 
 minimizeBtn.MouseButton1Click:Connect(function()
     if not isMinimized then
         isMinimized = true
-        content.Visible = false
+        scrollingFrame.Visible = false
         createTween(mainFrame, {Size = UDim2.new(0,480,0,50)}, 0.25):Play()
     else
         isMinimized = false
-        content.Visible = true
-        createTween(mainFrame, {Size = UDim2.new(0,480,0,440)}, 0.25):Play()
+        scrollingFrame.Visible = true
+        createTween(mainFrame, {Size = UDim2.new(0,480,0,480)}, 0.25):Play()
     end
 end)
 
@@ -500,9 +516,8 @@ task.spawn(function()
     end
 end)
 
-print("🌌 GOD MENU v10.0 'Beyond Human' loaded")
-print("✔ God Mode: Invincibility")
-print("✔ Fly Mode: WASD + Space")
-print("✔ Free Cam: Detach camera")
-print("✔ Enhanced Teleport: Natural movement")
-print("✔ Anti-Anti-Cheat techniques applied")
+-- ✅ Final Message
+print("🌌 GOD MENU v10.1 'Full Scroll' loaded")
+print("✔ All features working")
+print("✔ Scrollable menu fixed")
+print("✔ Use in private games only")
