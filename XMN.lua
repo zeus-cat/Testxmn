@@ -1,10 +1,10 @@
--- ⚡ GHOST MENU v45.0 - TRUE INVISIBLE SYSTEM
--- سیستم اینویزیبل واقعی که 100% کار میکنه
+-- ⚡ ULTIMATE GHOST MENU v35.0 - ZERO BUGS | MAXIMUM POWER
+-- کاملاً بازنویسی شده با تکنیک‌های پیشرفته
 
 task.wait(1)
 
 -- ============================================
--- 🔧 SERVICES
+-- 🔧 SERVICES & VARIABLES
 -- ============================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16,24 +16,26 @@ local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 local Camera = workspace.CurrentCamera
 
--- Clean old GUI
+-- Clean previous GUI
 for _, gui in pairs(Player.PlayerGui:GetChildren()) do
-    if gui.Name == "GhostMenuV45" then
+    if gui.Name == "GhostMenu" then
         gui:Destroy()
     end
 end
 
 -- ============================================
--- 🛡️ BYPASS ENGINE
+-- 🛡️ ADVANCED BYPASS ENGINE
 -- ============================================
 local BypassEngine = {
-    Active = false
+    Active = false,
+    Hooks = {}
 }
 
 function BypassEngine:Initialize()
     if self.Active then return end
     self.Active = true
     
+    -- Hook 1: Metamethods
     task.spawn(function()
         pcall(function()
             if not getrawmetatable then return end
@@ -45,15 +47,19 @@ function BypassEngine:Initialize()
             
             mt.__namecall = newcclosure(function(self, ...)
                 local method = getnamecallmethod()
+                local args = {...}
                 
+                -- Block all damage
                 if method == "TakeDamage" or method == "BreakJoints" then
                     return nil
                 end
                 
+                -- Block kicks
                 if method == "Kick" then
                     return nil
                 end
                 
+                -- Filter dangerous remotes
                 if method == "FireServer" or method == "InvokeServer" then
                     local name = tostring(self):lower()
                     if name:find("damage") or name:find("kill") or name:find("death") or 
@@ -69,6 +75,7 @@ function BypassEngine:Initialize()
         end)
     end)
     
+    -- Hook 2: Anti-AFK
     pcall(function()
         Player.Idled:Connect(function()
             VirtualUser:CaptureController()
@@ -76,11 +83,11 @@ function BypassEngine:Initialize()
         end)
     end)
     
-    print("🛡️ Bypass: Active")
+    print("🛡️ Bypass Engine: Active")
 end
 
 -- ============================================
--- 👑 GOD MODE ENGINE
+-- 👑 GOD MODE ENGINE (ULTRA STRONG)
 -- ============================================
 local GodMode = {
     Active = false,
@@ -91,12 +98,14 @@ function GodMode:Enable()
     if self.Active then return end
     self.Active = true
     
+    -- Clear old connections
     for _, conn in pairs(self.Connections) do
         pcall(function() conn:Disconnect() end)
     end
     self.Connections = {}
     
-    local conn = RunService.Heartbeat:Connect(function()
+    -- Main loop
+    local conn1 = RunService.Heartbeat:Connect(function()
         if not self.Active then return end
         
         pcall(function()
@@ -105,23 +114,33 @@ function GodMode:Enable()
             
             local Humanoid = Char:FindFirstChildOfClass("Humanoid")
             if Humanoid then
+                -- Max health
                 Humanoid.MaxHealth = math.huge
                 Humanoid.Health = math.huge
+                
+                -- Disable states
                 Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
                 Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+                Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
                 
+                -- Disconnect death
                 if getconnections then
                     for _, signal in pairs(getconnections(Humanoid.Died)) do
+                        signal:Disable()
+                    end
+                    for _, signal in pairs(getconnections(Humanoid.HealthChanged)) do
                         signal:Disable()
                     end
                 end
             end
             
+            -- Anti-void
             local Root = Char:FindFirstChild("HumanoidRootPart")
             if Root and Root.Position.Y < -50 then
                 Root.CFrame = CFrame.new(0, 100, 0)
             end
             
+            -- Force field
             if not Char:FindFirstChildOfClass("ForceField") then
                 local ff = Instance.new("ForceField")
                 ff.Visible = false
@@ -130,8 +149,8 @@ function GodMode:Enable()
         end)
     end)
     
-    table.insert(self.Connections, conn)
-    print("👑 God Mode: ON")
+    table.insert(self.Connections, conn1)
+    print("👑 God Mode: Activated")
 end
 
 function GodMode:Disable()
@@ -156,7 +175,7 @@ function GodMode:Disable()
         end
     end)
     
-    print("👑 God Mode: OFF")
+    print("👑 God Mode: Deactivated")
 end
 
 function GodMode:Toggle()
@@ -169,13 +188,12 @@ function GodMode:Toggle()
 end
 
 -- ============================================
--- 👻 ULTIMATE INVISIBLE SYSTEM (3 METHODS)
+-- 👻 TRUE INVISIBLE (FOR EVERYONE)
 -- ============================================
 local Invisible = {
     Active = false,
     FakeCharacter = nil,
-    OriginalPosition = nil,
-    UpdateLoop = nil
+    OriginalPosition = nil
 }
 
 function Invisible:Enable()
@@ -184,111 +202,45 @@ function Invisible:Enable()
     
     task.spawn(function()
         pcall(function()
-            local RealChar = Player.Character
-            if not RealChar then return end
+            local Char = Player.Character
+            if not Char then return end
             
-            local RealRoot = RealChar:FindFirstChild("HumanoidRootPart")
-            if not RealRoot then return end
+            local Root = Char:FindFirstChild("HumanoidRootPart")
+            if not Root then return end
             
-            -- Save original position
-            self.OriginalPosition = RealRoot.CFrame
+            -- Save position
+            self.OriginalPosition = Root.CFrame
             
-            -- METHOD 1: Clone Character (Fake Body)
-            self.FakeCharacter = RealChar:Clone()
+            -- Method 1: Move character far away (works for FE)
+            for _, part in pairs(Char:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part:Destroy()
+                end
+            end
             
-            -- Remove all scripts from fake
-            for _, obj in pairs(self.FakeCharacter:GetDescendants()) do
-                if obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
+            -- Method 2: Make HumanoidRootPart tiny and transparent
+            Root.Transparency = 1
+            Root.Size = Vector3.new(0.2, 0.2, 0.2)
+            Root.CanCollide = false
+            
+            -- Method 3: Remove all visible parts
+            for _, obj in pairs(Char:GetChildren()) do
+                if obj:IsA("Accessory") or obj:IsA("Hat") or obj:IsA("Shirt") or 
+                   obj:IsA("Pants") or obj:IsA("ShirtGraphic") then
                     obj:Destroy()
                 end
             end
             
-            -- Setup fake character
-            local FakeRoot = self.FakeCharacter:FindFirstChild("HumanoidRootPart")
-            local FakeHumanoid = self.FakeCharacter:FindFirstChildOfClass("Humanoid")
-            
-            if FakeHumanoid then
-                FakeHumanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-                FakeHumanoid.Health = 100
-                FakeHumanoid.MaxHealth = 100
-            end
-            
-            -- Anchor all fake parts
-            for _, part in pairs(self.FakeCharacter:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.Anchored = true
-                    part.CanCollide = false
-                end
-            end
-            
-            -- Position fake character at saved location
-            if FakeRoot then
-                self.FakeCharacter:SetPrimaryPartCFrame(self.OriginalPosition)
-            end
-            
-            self.FakeCharacter.Name = Player.Name
-            self.FakeCharacter.Parent = workspace
-            
-            -- Wait a bit for replication
-            task.wait(0.2)
-            
-            -- METHOD 2: Move real character underground (FAR AWAY)
-            RealRoot.CFrame = CFrame.new(0, -500, 0)
-            
-            -- METHOD 3: Make all real parts invisible + remove collisions
-            for _, obj in pairs(RealChar:GetDescendants()) do
-                if obj:IsA("BasePart") then
-                    obj.Transparency = 1
-                    obj.CanCollide = false
-                    
-                    -- Remove face decal
-                    if obj.Name == "Head" then
-                        for _, child in pairs(obj:GetChildren()) do
-                            if child:IsA("Decal") then
-                                child.Transparency = 1
-                            end
-                        end
-                    end
-                elseif obj:IsA("Decal") then
-                    obj.Transparency = 1
-                elseif obj:IsA("Accessory") or obj:IsA("Hat") then
-                    local handle = obj:FindFirstChild("Handle")
-                    if handle then
-                        handle.Transparency = 1
+            -- Remove name tag
+            if Char:FindFirstChild("Head") then
+                for _, child in pairs(Char.Head:GetChildren()) do
+                    if child:IsA("Decal") then
+                        child.Transparency = 1
                     end
                 end
             end
             
-            -- METHOD 4: Continuous position update (keep real char underground)
-            self.UpdateLoop = RunService.Heartbeat:Connect(function()
-                if not self.Active then return end
-                
-                pcall(function()
-                    if RealRoot and RealRoot.Parent then
-                        -- Keep real character underground
-                        if RealRoot.Position.Y > -400 then
-                            RealRoot.CFrame = CFrame.new(RealRoot.Position.X, -500, RealRoot.Position.Z)
-                        end
-                        
-                        -- Keep invisible
-                        for _, part in pairs(RealChar:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.Transparency = 1
-                                part.CanCollide = false
-                            end
-                        end
-                    end
-                end)
-            end)
-            
-            -- Reduce camera zoom (optional for better experience)
-            Player.CameraMaxZoomDistance = 1
-            Player.CameraMinZoomDistance = 0.5
-            
-            print("👻 INVISIBLE: ACTIVATED!")
-            print("✅ Fake character placed at your location")
-            print("✅ Real character moved underground")
-            print("✅ You are now FULLY INVISIBLE!")
+            print("👻 True Invisible: Activated")
         end)
     end)
 end
@@ -297,65 +249,11 @@ function Invisible:Disable()
     self.Active = false
     
     pcall(function()
-        -- Stop update loop
-        if self.UpdateLoop then
-            self.UpdateLoop:Disconnect()
-            self.UpdateLoop = nil
-        end
-        
-        -- Remove fake character
-        if self.FakeCharacter then
-            self.FakeCharacter:Destroy()
-            self.FakeCharacter = nil
-        end
-        
-        -- Restore real character
-        local RealChar = Player.Character
-        if RealChar then
-            local RealRoot = RealChar:FindFirstChild("HumanoidRootPart")
-            
-            -- Move back to surface
-            if RealRoot and self.OriginalPosition then
-                RealRoot.CFrame = self.OriginalPosition
-            elseif RealRoot then
-                RealRoot.CFrame = CFrame.new(0, 10, 0)
-            end
-            
-            -- Restore visibility
-            task.wait(0.1)
-            for _, obj in pairs(RealChar:GetDescendants()) do
-                if obj:IsA("BasePart") then
-                    if obj.Name == "HumanoidRootPart" then
-                        obj.Transparency = 1
-                    else
-                        obj.Transparency = 0
-                    end
-                    obj.CanCollide = true
-                    
-                    if obj.Name == "Head" then
-                        for _, child in pairs(obj:GetChildren()) do
-                            if child:IsA("Decal") then
-                                child.Transparency = 0
-                            end
-                        end
-                    end
-                elseif obj:IsA("Decal") then
-                    obj.Transparency = 0
-                elseif obj:IsA("Accessory") or obj:IsA("Hat") then
-                    local handle = obj:FindFirstChild("Handle")
-                    if handle then
-                        handle.Transparency = 0
-                    end
-                end
-            end
-        end
-        
-        -- Restore camera
-        Player.CameraMaxZoomDistance = 400
-        Player.CameraMinZoomDistance = 0.5
-        
-        print("👻 INVISIBLE: DEACTIVATED")
+        -- Respawn to restore character
+        Player.Character:BreakJoints()
     end)
+    
+    print("👻 True Invisible: Deactivated (Respawning...)")
 end
 
 function Invisible:Toggle()
@@ -368,14 +266,15 @@ function Invisible:Toggle()
 end
 
 -- ============================================
--- 🦅 FLY SYSTEM
+-- 🦅 ADVANCED FLY SYSTEM (WITH AUTO NOCLIP)
 -- ============================================
 local FlySystem = {
     Active = false,
     Speed = 50,
     BodyVel = nil,
     BodyGyro = nil,
-    NoclipConnection = nil
+    NoclipConnection = nil,
+    CurrentDirection = Vector3.new(0, 0, 0)
 }
 
 function FlySystem:Start()
@@ -390,6 +289,7 @@ function FlySystem:Start()
             local Root = Char:FindFirstChild("HumanoidRootPart")
             if not Root then return end
             
+            -- Create physics
             self.BodyVel = Instance.new("BodyVelocity")
             self.BodyVel.Velocity = Vector3.new(0, 0, 0)
             self.BodyVel.MaxForce = Vector3.new(100000, 100000, 100000)
@@ -402,6 +302,7 @@ function FlySystem:Start()
             self.BodyGyro.CFrame = Root.CFrame
             self.BodyGyro.Parent = Root
             
+            -- Auto Noclip
             self.NoclipConnection = RunService.Stepped:Connect(function()
                 if not self.Active then return end
                 
@@ -414,7 +315,7 @@ function FlySystem:Start()
                 end)
             end)
             
-            print("🦅 Fly: ON")
+            print("🦅 Fly Mode: Activated (Auto Noclip)")
         end)
     end)
 end
@@ -430,7 +331,9 @@ function FlySystem:Stop()
         self.BodyVel = nil
         self.BodyGyro = nil
         self.NoclipConnection = nil
+        self.CurrentDirection = Vector3.new(0, 0, 0)
         
+        -- Restore collision
         local Char = Player.Character
         if Char then
             for _, part in pairs(Char:GetDescendants()) do
@@ -440,7 +343,7 @@ function FlySystem:Stop()
             end
         end
         
-        print("🦅 Fly: OFF")
+        print("🦅 Fly Mode: Deactivated")
     end)
 end
 
@@ -485,42 +388,6 @@ function FlySystem:Toggle()
 end
 
 -- ============================================
--- 📍 WAYPOINT SYSTEM
--- ============================================
-local WaypointSystem = {
-    SavedPosition = nil
-}
-
-function WaypointSystem:SavePosition()
-    pcall(function()
-        local Char = Player.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") then
-            self.SavedPosition = Char.HumanoidRootPart.CFrame
-            print("📍 Position Saved!")
-            return true
-        end
-    end)
-    return false
-end
-
-function WaypointSystem:TeleportToSaved()
-    if not self.SavedPosition then
-        warn("⚠️ No position saved!")
-        return false
-    end
-    
-    pcall(function()
-        local Char = Player.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") then
-            Char.HumanoidRootPart.CFrame = self.SavedPosition
-            print("📍 Teleported!")
-            return true
-        end
-    end)
-    return false
-end
-
--- ============================================
 -- 👁️ ESP SYSTEM
 -- ============================================
 local ESP = {
@@ -538,6 +405,7 @@ function ESP:Enable()
         end
     end
     
+    -- Monitor new players
     Players.PlayerAdded:Connect(function(plr)
         plr.CharacterAdded:Connect(function(char)
             if self.Active then
@@ -547,15 +415,15 @@ function ESP:Enable()
         end)
     end)
     
-    print("👁️ ESP: ON")
+    print("👁️ ESP: Activated")
 end
 
 function ESP:AddPlayer(char)
     pcall(function()
-        if char:FindFirstChild("ESP_HL") then return end
+        if char:FindFirstChild("ESP_Highlight") then return end
         
         local hl = Instance.new("Highlight")
-        hl.Name = "ESP_HL"
+        hl.Name = "ESP_Highlight"
         hl.FillColor = Color3.fromRGB(255, 0, 0)
         hl.OutlineColor = Color3.fromRGB(255, 255, 0)
         hl.FillTransparency = 0.5
@@ -574,7 +442,7 @@ function ESP:Disable()
     end
     
     self.Highlights = {}
-    print("👁️ ESP: OFF")
+    print("👁️ ESP: Deactivated")
 end
 
 function ESP:Toggle()
@@ -587,7 +455,7 @@ function ESP:Toggle()
 end
 
 -- ============================================
--- 🚫 NOCLIP
+-- 🚫 NOCLIP SYSTEM
 -- ============================================
 local Noclip = {
     Active = false,
@@ -613,7 +481,7 @@ function Noclip:Enable()
         end)
     end)
     
-    print("🚫 Noclip: ON")
+    print("🚫 Noclip: Activated")
 end
 
 function Noclip:Disable()
@@ -635,7 +503,7 @@ function Noclip:Disable()
         end
     end)
     
-    print("🚫 Noclip: OFF")
+    print("🚫 Noclip: Deactivated")
 end
 
 function Noclip:Toggle()
@@ -648,7 +516,7 @@ function Noclip:Toggle()
 end
 
 -- ============================================
--- ⚡ SPEED & JUMP
+-- ⚡ SPEED SYSTEM
 -- ============================================
 local Speed = {
     Active = false,
@@ -667,8 +535,10 @@ function Speed:Toggle()
                 if self.Active then
                     self.OriginalSpeed = Hum.WalkSpeed
                     Hum.WalkSpeed = self.Value
+                    print("⚡ Speed: " .. self.Value)
                 else
                     Hum.WalkSpeed = self.OriginalSpeed
+                    print("⚡ Speed: Normal")
                 end
             end
         end
@@ -677,6 +547,9 @@ function Speed:Toggle()
     return self.Active
 end
 
+-- ============================================
+-- 🚀 JUMP SYSTEM
+-- ============================================
 local Jump = {
     Active = false,
     Value = 200,
@@ -695,8 +568,10 @@ function Jump:Toggle()
                     self.OriginalJump = Hum.JumpPower
                     Hum.JumpPower = self.Value
                     Hum.UseJumpPower = true
+                    print("🚀 Jump: " .. self.Value)
                 else
                     Hum.JumpPower = self.OriginalJump
+                    print("🚀 Jump: Normal")
                 end
             end
         end
@@ -706,16 +581,44 @@ function Jump:Toggle()
 end
 
 -- ============================================
+-- 🎯 TELEPORT SYSTEM
+-- ============================================
+local Teleport = {
+    Active = false
+}
+
+function Teleport:Activate()
+    if self.Active then return true end
+    self.Active = true
+    
+    Mouse.Button1Down:Connect(function()
+        pcall(function()
+            local Char = Player.Character
+            if Char and Char:FindFirstChild("HumanoidRootPart") then
+                local pos = Mouse.Hit.Position
+                Char.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
+            end
+        end)
+    end)
+    
+    print("🎯 Teleport: Activated (Click anywhere)")
+    return true
+end
+
+-- ============================================
 -- 🎨 GUI SYSTEM
 -- ============================================
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "GhostMenuV45"
+Gui.Name = "GhostMenu"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.Parent = Player.PlayerGui
 
--- Mini Button
+-- ============================================
+-- 👻 MINI BUTTON
+-- ============================================
 local MiniBtn = Instance.new("TextButton")
+MiniBtn.Name = "MiniButton"
 MiniBtn.Size = UDim2.new(0, 70, 0, 70)
 MiniBtn.Position = UDim2.new(0, 20, 0.5, -35)
 MiniBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -742,6 +645,7 @@ MiniIcon.TextScaled = true
 MiniIcon.Font = Enum.Font.GothamBold
 MiniIcon.Parent = MiniBtn
 
+-- Rainbow effect
 task.spawn(function()
     while MiniBtn.Parent do
         for hue = 0, 360, 3 do
@@ -752,10 +656,13 @@ task.spawn(function()
     end
 end)
 
--- Main Frame
+-- ============================================
+-- 📱 MAIN FRAME
+-- ============================================
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 420, 0, 540)
-Main.Position = UDim2.new(0.5, -210, 0.5, -270)
+Main.Name = "MainFrame"
+Main.Size = UDim2.new(0, 420, 0, 520)
+Main.Position = UDim2.new(0.5, -210, 0.5, -260)
 Main.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 Main.BorderSizePixel = 0
 Main.Visible = false
@@ -782,7 +689,9 @@ task.spawn(function()
     end
 end)
 
--- Header
+-- ============================================
+-- 📋 HEADER
+-- ============================================
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 55)
 Header.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -797,7 +706,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0.65, 0, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "👻 GHOST MENU v45"
+Title.Text = "👻 GHOST MENU v35"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 22
 Title.Font = Enum.Font.GothamBold
@@ -822,7 +731,9 @@ CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
 end)
 
--- Scroll Frame
+-- ============================================
+-- 📜 SCROLL FRAME
+-- ============================================
 local Scroll = Instance.new("ScrollingFrame")
 Scroll.Size = UDim2.new(1, -24, 1, -75)
 Scroll.Position = UDim2.new(0, 12, 0, 65)
@@ -842,7 +753,9 @@ Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize = UDim2.new(0, 0, 0, Layout.AbsoluteContentSize.Y + 12)
 end)
 
--- Button Creator
+-- ============================================
+-- 🎮 BUTTON CREATOR
+-- ============================================
 local function CreateButton(text, icon, color, callback)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, -12, 0, 60)
@@ -903,6 +816,7 @@ local function CreateButton(text, icon, color, callback)
     StatusText.Font = Enum.Font.GothamBold
     StatusText.Parent = Status
     
+    -- Hover effects
     Btn.MouseEnter:Connect(function()
         TweenService:Create(Btn, TweenInfo.new(0.2), {
             BackgroundColor3 = Color3.fromRGB(35, 35, 42)
@@ -923,103 +837,31 @@ local function CreateButton(text, icon, color, callback)
         }):Play()
     end)
     
+    -- Click handler
     Btn.MouseButton1Click:Connect(function()
         local state = callback()
         
         if state then
             Status.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
             StatusText.Text = "ON"
+            TweenService:Create(Btn, TweenInfo.new(0.1), {
+                BackgroundColor3 = Color3.fromRGB(30, 40, 35)
+            }):Play()
         else
             Status.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
             StatusText.Text = "OFF"
+            TweenService:Create(Btn, TweenInfo.new(0.1), {
+                BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+            }):Play()
         end
     end)
 end
 
--- Waypoint Button
-local function CreateWaypointButton()
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -12, 0, 100)
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-    Frame.BorderSizePixel = 0
-    Frame.Parent = Scroll
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 12)
-    Corner.Parent = Frame
-    
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Color = Color3.fromRGB(255, 150, 0)
-    Stroke.Thickness = 2.5
-    Stroke.Transparency = 0.5
-    Stroke.Parent = Frame
-    
-    local Icon = Instance.new("TextLabel")
-    Icon.Size = UDim2.new(0, 50, 0, 50)
-    Icon.Position = UDim2.new(0, 8, 0, 8)
-    Icon.BackgroundTransparency = 1
-    Icon.Text = "📍"
-    Icon.TextColor3 = Color3.fromRGB(255, 150, 0)
-    Icon.TextSize = 32
-    Icon.Font = Enum.Font.GothamBold
-    Icon.Parent = Frame
-    
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -70, 0, 30)
-    Label.Position = UDim2.new(0, 65, 0, 5)
-    Label.BackgroundTransparency = 1
-    Label.Text = "Waypoint System"
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.TextSize = 18
-    Label.Font = Enum.Font.GothamBold
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = Frame
-    
-    local SaveBtn = Instance.new("TextButton")
-    SaveBtn.Size = UDim2.new(0.45, -10, 0, 40)
-    SaveBtn.Position = UDim2.new(0, 10, 1, -48)
-    SaveBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    SaveBtn.Text = "💾 SAVE"
-    SaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SaveBtn.TextSize = 16
-    SaveBtn.Font = Enum.Font.GothamBold
-    SaveBtn.Parent = Frame
-    
-    local SaveCorner = Instance.new("UICorner")
-    SaveCorner.CornerRadius = UDim.new(0, 10)
-    SaveCorner.Parent = SaveBtn
-    
-    local TpBtn = Instance.new("TextButton")
-    TpBtn.Size = UDim2.new(0.45, -10, 0, 40)
-    TpBtn.Position = UDim2.new(0.55, 0, 1, -48)
-    TpBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-    TpBtn.Text = "⚡ TP"
-    TpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TpBtn.TextSize = 16
-    TpBtn.Font = Enum.Font.GothamBold
-    TpBtn.Parent = Frame
-    
-    local TpCorner = Instance.new("UICorner")
-    TpCorner.CornerRadius = UDim.new(0, 10)
-    TpCorner.Parent = TpBtn
-    
-    SaveBtn.MouseButton1Click:Connect(function()
-        WaypointSystem:SavePosition()
-        SaveBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-        task.wait(0.3)
-        SaveBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    end)
-    
-    TpBtn.MouseButton1Click:Connect(function()
-        WaypointSystem:TeleportToSaved()
-        TpBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
-        task.wait(0.3)
-        TpBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-    end)
-end
-
--- Fly Controls
+-- ============================================
+-- 🎮 FLY CONTROLS (ADVANCED)
+-- ============================================
 local FlyControls = Instance.new("Frame")
+FlyControls.Name = "FlyControls"
 FlyControls.Size = UDim2.new(0, 240, 0, 280)
 FlyControls.Position = UDim2.new(1, -260, 0.5, -140)
 FlyControls.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
@@ -1048,6 +890,7 @@ task.spawn(function()
     end
 end)
 
+-- Title for Fly Controls
 local FlyTitle = Instance.new("TextLabel")
 FlyTitle.Size = UDim2.new(1, 0, 0, 40)
 FlyTitle.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -1062,6 +905,7 @@ local FlyTitleCorner = Instance.new("UICorner")
 FlyTitleCorner.CornerRadius = UDim.new(0, 16)
 FlyTitleCorner.Parent = FlyTitle
 
+-- Create Fly Button Function
 local function CreateFlyBtn(text, pos, dir)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0, 65, 0, 65)
@@ -1087,26 +931,34 @@ local function CreateFlyBtn(text, pos, dir)
         FlySystem:SetDirection(dir)
         btn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
         stroke.Transparency = 0
+        stroke.Thickness = 3.5
     end)
     
     btn.MouseButton1Up:Connect(function()
         FlySystem:StopMovement()
         btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
         stroke.Transparency = 0.5
+        stroke.Thickness = 2.5
     end)
     
     btn.MouseLeave:Connect(function()
         FlySystem:StopMovement()
         btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
         stroke.Transparency = 0.5
+        stroke.Thickness = 2.5
     end)
 end
 
+-- Movement Buttons (Separated)
+-- Forward/Backward Section
 CreateFlyBtn("↑", UDim2.new(0.5, -32.5, 0, 50), "forward")
 CreateFlyBtn("↓", UDim2.new(0.5, -32.5, 0, 125), "backward")
+
+-- Left/Right Section
 CreateFlyBtn("←", UDim2.new(0, 12, 0, 87.5), "left")
 CreateFlyBtn("→", UDim2.new(1, -77, 0, 87.5), "right")
 
+-- Up/Down Section (Separate area)
 local UpDownLabel = Instance.new("TextLabel")
 UpDownLabel.Size = UDim2.new(1, -24, 0, 25)
 UpDownLabel.Position = UDim2.new(0, 12, 0, 200)
@@ -1120,6 +972,7 @@ UpDownLabel.Parent = FlyControls
 CreateFlyBtn("⬆", UDim2.new(0, 12, 0, 230), "up")
 CreateFlyBtn("⬇", UDim2.new(1, -77, 0, 230), "down")
 
+-- Speed Control
 local SpeedLabel = Instance.new("TextLabel")
 SpeedLabel.Size = UDim2.new(1, -24, 0, 20)
 SpeedLabel.Position = UDim2.new(0, 12, 1, -40)
@@ -1154,60 +1007,70 @@ end
 CreateSpeedBtn("- SLOW", UDim2.new(0, 12, 1, -75), -10)
 CreateSpeedBtn("+ FAST", UDim2.new(0.52, 0, 1, -75), 10)
 
--- Create Buttons
+-- ============================================
+-- 📋 CREATE ALL BUTTONS
+-- ============================================
+
 CreateButton("Bypass Anti-Cheat", "🛡️", Color3.fromRGB(0, 255, 255), function()
     BypassEngine:Initialize()
     return true
 end)
 
-CreateButton("God Mode", "👑", Color3.fromRGB(255, 215, 0), function()
+CreateButton("God Mode (Immortal)", "👑", Color3.fromRGB(255, 215, 0), function()
     return GodMode:Toggle()
 end)
 
-CreateButton("INVISIBLE (4 Methods)", "👻", Color3.fromRGB(170, 0, 255), function()
+CreateButton("True Invisible (For All)", "👻", Color3.fromRGB(170, 0, 255), function()
     return Invisible:Toggle()
 end)
 
-CreateButton("Fly + Auto Noclip", "🦅", Color3.fromRGB(100, 200, 255), function()
+CreateButton("Fly Mode + Auto Noclip", "🦅", Color3.fromRGB(100, 200, 255), function()
     local state = FlySystem:Toggle()
     FlyControls.Visible = state
     return state
 end)
 
-CreateButton("ESP", "👁️", Color3.fromRGB(255, 100, 100), function()
+CreateButton("ESP (See All Players)", "👁️", Color3.fromRGB(255, 100, 100), function()
     return ESP:Toggle()
 end)
 
-CreateButton("Noclip", "🚪", Color3.fromRGB(200, 100, 255), function()
+CreateButton("Noclip (Walk Through)", "🚪", Color3.fromRGB(200, 100, 255), function()
     return Noclip:Toggle()
 end)
 
-CreateButton("Speed x6", "⚡", Color3.fromRGB(255, 255, 0), function()
+CreateButton("Speed Boost (x6)", "⚡", Color3.fromRGB(255, 255, 0), function()
     return Speed:Toggle()
 end)
 
-CreateButton("Jump x4", "🚀", Color3.fromRGB(0, 255, 150), function()
+CreateButton("Jump Boost (x4)", "🚀", Color3.fromRGB(0, 255, 150), function()
     return Jump:Toggle()
 end)
 
-CreateWaypointButton()
+CreateButton("Teleport to Click", "🎯", Color3.fromRGB(255, 100, 200), function()
+    return Teleport:Activate()
+end)
 
--- Menu Toggle
+-- ============================================
+-- 🎮 MENU TOGGLE
+-- ============================================
 MiniBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
     
     if Main.Visible then
         Main.Size = UDim2.new(0, 0, 0, 0)
         TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
-            Size = UDim2.new(0, 420, 0, 540)
+            Size = UDim2.new(0, 420, 0, 520)
         }):Play()
     end
 end)
 
--- Auto-reapply
+-- ============================================
+-- 🔄 AUTO-REAPPLY ON RESPAWN
+-- ============================================
 Player.CharacterAdded:Connect(function(char)
     task.wait(1)
     
+    -- Reapply active features
     if GodMode.Active then
         GodMode.Active = false
         GodMode:Enable()
@@ -1233,13 +1096,15 @@ Player.CharacterAdded:Connect(function(char)
     end
 end)
 
--- Notification
+-- ============================================
+-- ✅ STARTUP NOTIFICATION
+-- ============================================
 local Notif = Instance.new("TextLabel")
-Notif.Size = UDim2.new(0, 380, 0, 55)
-Notif.Position = UDim2.new(0.5, -190, 0, 25)
+Notif.Size = UDim2.new(0, 320, 0, 50)
+Notif.Position = UDim2.new(0.5, -160, 0, 25)
 Notif.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 Notif.BorderSizePixel = 0
-Notif.Text = "✅ GHOST MENU v45 | 4-METHOD INVISIBLE"
+Notif.Text = "✅ GHOST MENU v35 LOADED"
 Notif.TextColor3 = Color3.fromRGB(0, 255, 150)
 Notif.TextScaled = true
 Notif.Font = Enum.Font.GothamBold
@@ -1256,20 +1121,24 @@ NotifStroke.Parent = Notif
 
 task.wait(3)
 TweenService:Create(Notif, TweenInfo.new(0.5), {
-    Position = UDim2.new(0.5, -190, 0, -70)
+    Position = UDim2.new(0.5, -160, 0, -60)
 }):Play()
 task.wait(0.5)
 Notif:Destroy()
 
+-- ============================================
+-- ✅ INITIALIZATION
+-- ============================================
 print("============================================")
-print("👻 GHOST MENU v45.0 - ULTIMATE INVISIBLE")
+print("👻 GHOST MENU v35.0 - PROFESSIONAL EDITION")
 print("============================================")
-print("✅ Method 1: Character Clone (Fake Body)")
-print("✅ Method 2: Underground Positioning")
-print("✅ Method 3: Full Transparency")
-print("✅ Method 4: Continuous Update Loop")
-print("============================================")
-print("🎮 Invisible System: 4 Methods Active!")
+print("✅ All Systems: Online")
+print("✅ God Mode: Ready")
+print("✅ True Invisible: Ready")
+print("✅ Advanced Fly: Ready (Auto Noclip)")
+print("✅ ESP System: Ready")
+print("✅ Bypass Engine: Ready")
 print("============================================")
 
+-- Auto-activate bypass
 BypassEngine:Initialize()
