@@ -1,4 +1,4 @@
--- 🌟 GOD MENU v10.0 - God Mode, Fly, Advanced Teleport, Free Cam, ESP + More
+-- 🌟 GOD MENU v11.0 - Ultimate Bypass, God Mode, Fly, Advanced Teleport, Free Cam, ESP + More
 -- Note: Advanced client-side methods. No server-side bypass. Use responsibly.
 
 local Players = game:GetService("Players")
@@ -42,6 +42,7 @@ local camVelocity = Vector3.new()
 local advancedTeleportEnabled = false
 local clickTpEnabled = false
 local clickTpConn = nil
+local bypassEnabled = false -- NEW: Ultimate Bypass State
 
 -- UI helpers
 local function createTween(obj, props, duration)
@@ -51,7 +52,7 @@ end
 
 -- MAIN GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "GodMenuPro"
+screenGui.Name = "GodMenuUltimate"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
@@ -98,8 +99,8 @@ logoStroke.Parent = logoButton
 
 -- Main Window
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 480, 0, 500) -- Increased height for more features
-mainFrame.Position = UDim2.new(0.5, -240, 0.5, -250)
+mainFrame.Size = UDim2.new(0, 480, 0, 560) -- Increased height for new feature
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -280)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
@@ -135,7 +136,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6,0,1,0)
 title.Position = UDim2.new(0,16,0,0)
 title.BackgroundTransparency = 1
-title.Text = "GOD MENU PRO v10"
+title.Text = "GOD MENU ULTIMATE v11"
 title.TextColor3 = Color3.fromRGB(130,180,255)
 title.TextSize = 20
 title.Font = Enum.Font.SourceSansBold
@@ -275,6 +276,33 @@ local function refreshRefsIfNeeded()
         rootPart = character:WaitForChild("HumanoidRootPart")
     elseif not rootPart or not rootPart.Parent then
         rootPart = character:WaitForChild("HumanoidRootPart")
+    end
+end
+
+-- NEW: Ultimate Bypass Teleport Function
+local function performTeleport(targetCFrame)
+    refreshRefsIfNeeded()
+    if not rootPart then return end
+
+    if bypassEnabled then
+        -- Segmented teleport for bypassing anti-cheats
+        local startCFrame = rootPart.CFrame
+        local distance = (startCFrame.Position - targetCFrame.Position).Magnitude
+        local segmentDistance = 50 -- Distance per "step"
+        local segments = math.ceil(distance / segmentDistance)
+        
+        for i = 1, segments do
+            local alpha = i / segments
+            local nextCFrame = startCFrame:Lerp(targetCFrame, alpha)
+            rootPart.CFrame = nextCFrame
+            RunService.Heartbeat:Wait()
+        end
+        rootPart.CFrame = targetCFrame -- Ensure final position is exact
+    else
+        -- Fast tween method for when bypass is off
+        local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(rootPart, tweenInfo, {CFrame = targetCFrame})
+        tween:Play()
     end
 end
 
@@ -510,16 +538,6 @@ tpToCamBtn.Parent = advancedTeleportGui
 local tccC = Instance.new("UICorner"); tccC.CornerRadius = UDim.new(0,8); tccC.Parent = tpToCamBtn
 
 
--- Teleport helpers
-local function bypassTeleport(targetCFrame)
-    refreshRefsIfNeeded()
-    if not rootPart then return end
-    
-    local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tween = TweenService:Create(rootPart, tweenInfo, {CFrame = targetCFrame})
-    tween:Play()
-end
-
 local function toggleAdvancedTeleport()
     advancedTeleportEnabled = not advancedTeleportEnabled
     advancedTeleportGui.Visible = advancedTeleportEnabled
@@ -550,7 +568,7 @@ clickTpBtn.MouseButton1Click:Connect(function()
             local ray = cam:ScreenPointToRay(input.Position.X, input.Position.Y)
             local raycastResult = Workspace:Raycast(ray.Origin, ray.Direction * 1000)
             if raycastResult then
-                bypassTeleport(CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0)))
+                performTeleport(CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))) -- Use new teleport function
             end
         end)
     else
@@ -562,7 +580,7 @@ end)
 playerTpBtn.MouseButton1Click:Connect(function()
     local targetPlayer = Players:FindFirstChild(playerTpDropdown.Text)
     if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        bypassTeleport(targetPlayer.Character.HumanoidRootPart.CFrame)
+        performTeleport(targetPlayer.Character.HumanoidRootPart.CFrame) -- Use new teleport function
     else
         playerTpDropdown.Text = "بازیکن پیدا نشد!"
         task.wait(1)
@@ -572,7 +590,7 @@ end)
 
 -- TP to Cam logic
 tpToCamBtn.MouseButton1Click:Connect(function()
-    bypassTeleport(cam.CFrame)
+    performTeleport(cam.CFrame) -- Use new teleport function
 end)
 
 
@@ -670,7 +688,7 @@ local function simpleTeleport(direction)
         target = cf - flatLook * teleportDistance
     end
 
-    bypassTeleport(target) -- Using bypass teleport for consistency
+    performTeleport(target) -- Use new teleport function
 
     if freezeEnabled then
         freezePosition = target
@@ -712,6 +730,11 @@ local function toggleTeleport()
     return teleportEnabled
 end
 
+-- NEW: Ultimate Bypass Toggle
+local function toggleBypass()
+    bypassEnabled = not bypassEnabled
+    return bypassEnabled
+end
 
 -- =================== CREATE CARDS ===================
 featureCard("👁", "ESP | دید از دیوار", "نمایش بازیکنان از پشت دیوار", toggleESP)
@@ -720,6 +743,7 @@ featureCard("⚡", "حالت خدا", "نامیرایی + عبور از دیوا
 featureCard("🦅", "پرواز", "پرواز آزادانه در نقشه (WASD+QE)", toggleFly)
 featureCard("📷", "دوربین آزاد", "کنترل دوربین جدا از کاراکتر", toggleFreeCam)
 featureCard("🌌", "تلپورت پیشرفته", "تلپورت کلیکی، به بازیکن، به دوربین", toggleAdvancedTeleport)
+featureCard("🛡️", "Bypass تلپورت فوق پیشرفته", "فعال‌سازی بایپس چند مرحله‌ای برای جلوگیری از بازگشت توسط آنتی‌چیت. تلپورت‌ها آهسته‌تر اما امن‌تر خواهند بود.", toggleBypass)
 
 -- Update canvas size
 content.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
@@ -756,7 +780,7 @@ logoButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = menuOpen
     if menuOpen then
         mainFrame.Size = UDim2.new(0,0,0,0)
-        createTween(mainFrame, {Size = UDim2.new(0,480,0,500)}, 0.35):Play()
+        createTween(mainFrame, {Size = UDim2.new(0,480,0,560)}, 0.35):Play()
     end
 end)
 
@@ -768,7 +792,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
     else
         isMinimized = false
         content.Visible = true
-        createTween(mainFrame, {Size = UDim2.new(0,480,0,500)}, 0.25):Play()
+        createTween(mainFrame, {Size = UDim2.new(0,480,0,560)}, 0.25):Play()
     end
 end)
 
@@ -804,6 +828,8 @@ destroyBtn.MouseButton1Click:Connect(function()
     if freezeConn then freezeConn:Disconnect(); freezeConn = nil end
     freezeEnabled = false
     freezePosition = nil
+    
+    bypassEnabled = false -- Reset bypass
 
     teleportEnabled = false
     teleportGui.Visible = false
@@ -842,7 +868,8 @@ task.spawn(function()
     end
 end)
 
-print("✅ GOD MENU PRO v10.0 loaded")
+print("✅ GOD MENU ULTIMATE v11.0 loaded")
+print("- Ultimate Teleport Bypass (Segmented Teleport) ready")
 print("- God Mode (Immortality + NoClip) ready")
 print("- Fly ready (WASD + QE)")
 print("- Free Cam ready")
