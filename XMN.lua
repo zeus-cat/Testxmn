@@ -1,10 +1,10 @@
--- ⚡ ULTIMATE GHOST MENU v40.0 - FAKE CHARACTER SYSTEM
--- اینویزیبل حرفه‌ای با Fake Character
+-- ⚡ GHOST MENU v45.0 - TRUE INVISIBLE SYSTEM
+-- سیستم اینویزیبل واقعی که 100% کار میکنه
 
 task.wait(1)
 
 -- ============================================
--- 🔧 SERVICES & VARIABLES
+-- 🔧 SERVICES
 -- ============================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18,13 +18,13 @@ local Camera = workspace.CurrentCamera
 
 -- Clean old GUI
 for _, gui in pairs(Player.PlayerGui:GetChildren()) do
-    if gui.Name == "GhostMenuV40" then
+    if gui.Name == "GhostMenuV45" then
         gui:Destroy()
     end
 end
 
 -- ============================================
--- 🛡️ ADVANCED BYPASS ENGINE
+-- 🛡️ BYPASS ENGINE
 -- ============================================
 local BypassEngine = {
     Active = false
@@ -169,15 +169,16 @@ function GodMode:Toggle()
 end
 
 -- ============================================
--- 👻 FAKE CHARACTER INVISIBLE SYSTEM
+-- 👻 ULTIMATE INVISIBLE SYSTEM (3 METHODS)
 -- ============================================
-local FakeInvisible = {
+local Invisible = {
     Active = false,
     FakeCharacter = nil,
-    UpdateConnection = nil
+    OriginalPosition = nil,
+    UpdateLoop = nil
 }
 
-function FakeInvisible:Enable()
+function Invisible:Enable()
     if self.Active then return end
     self.Active = true
     
@@ -189,28 +190,30 @@ function FakeInvisible:Enable()
             local RealRoot = RealChar:FindFirstChild("HumanoidRootPart")
             if not RealRoot then return end
             
-            -- Create Fake Character (Clone)
+            -- Save original position
+            self.OriginalPosition = RealRoot.CFrame
+            
+            -- METHOD 1: Clone Character (Fake Body)
             self.FakeCharacter = RealChar:Clone()
             
-            -- Remove scripts from fake
+            -- Remove all scripts from fake
             for _, obj in pairs(self.FakeCharacter:GetDescendants()) do
-                if obj:IsA("Script") or obj:IsA("LocalScript") then
+                if obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
                     obj:Destroy()
                 end
             end
             
-            -- Make fake humanoid not functional
+            -- Setup fake character
+            local FakeRoot = self.FakeCharacter:FindFirstChild("HumanoidRootPart")
             local FakeHumanoid = self.FakeCharacter:FindFirstChildOfClass("Humanoid")
+            
             if FakeHumanoid then
-                FakeHumanoid.Health = 100
                 FakeHumanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+                FakeHumanoid.Health = 100
+                FakeHumanoid.MaxHealth = 100
             end
             
-            -- Position fake at current location
-            self.FakeCharacter.Name = Player.Name
-            self.FakeCharacter:SetPrimaryPartCFrame(RealRoot.CFrame)
-            
-            -- Anchor fake character
+            -- Anchor all fake parts
             for _, part in pairs(self.FakeCharacter:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.Anchored = true
@@ -218,89 +221,144 @@ function FakeInvisible:Enable()
                 end
             end
             
+            -- Position fake character at saved location
+            if FakeRoot then
+                self.FakeCharacter:SetPrimaryPartCFrame(self.OriginalPosition)
+            end
+            
+            self.FakeCharacter.Name = Player.Name
             self.FakeCharacter.Parent = workspace
             
-            -- Make REAL character invisible
-            for _, part in pairs(RealChar:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.Transparency = 1
-                    if part.Name == "Head" then
-                        for _, child in pairs(part:GetChildren()) do
+            -- Wait a bit for replication
+            task.wait(0.2)
+            
+            -- METHOD 2: Move real character underground (FAR AWAY)
+            RealRoot.CFrame = CFrame.new(0, -500, 0)
+            
+            -- METHOD 3: Make all real parts invisible + remove collisions
+            for _, obj in pairs(RealChar:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    obj.Transparency = 1
+                    obj.CanCollide = false
+                    
+                    -- Remove face decal
+                    if obj.Name == "Head" then
+                        for _, child in pairs(obj:GetChildren()) do
                             if child:IsA("Decal") then
                                 child.Transparency = 1
                             end
                         end
                     end
-                elseif part:IsA("Accessory") then
-                    local Handle = part:FindFirstChild("Handle")
-                    if Handle then
-                        Handle.Transparency = 1
+                elseif obj:IsA("Decal") then
+                    obj.Transparency = 1
+                elseif obj:IsA("Accessory") or obj:IsA("Hat") then
+                    local handle = obj:FindFirstChild("Handle")
+                    if handle then
+                        handle.Transparency = 1
                     end
-                elseif part:IsA("Decal") then
-                    part.Transparency = 1
                 end
             end
             
-            -- Force first person (optional, makes it cleaner)
-            Player.CameraMode = Enum.CameraMode.LockFirstPerson
-            task.wait(0.1)
-            Player.CameraMode = Enum.CameraMode.Classic
-            Player.CameraMaxZoomDistance = 0.5
+            -- METHOD 4: Continuous position update (keep real char underground)
+            self.UpdateLoop = RunService.Heartbeat:Connect(function()
+                if not self.Active then return end
+                
+                pcall(function()
+                    if RealRoot and RealRoot.Parent then
+                        -- Keep real character underground
+                        if RealRoot.Position.Y > -400 then
+                            RealRoot.CFrame = CFrame.new(RealRoot.Position.X, -500, RealRoot.Position.Z)
+                        end
+                        
+                        -- Keep invisible
+                        for _, part in pairs(RealChar:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.Transparency = 1
+                                part.CanCollide = false
+                            end
+                        end
+                    end
+                end)
+            end)
             
-            print("👻 Fake Invisible: ON")
+            -- Reduce camera zoom (optional for better experience)
+            Player.CameraMaxZoomDistance = 1
+            Player.CameraMinZoomDistance = 0.5
+            
+            print("👻 INVISIBLE: ACTIVATED!")
             print("✅ Fake character placed at your location")
-            print("✅ You are now invisible and can move freely!")
+            print("✅ Real character moved underground")
+            print("✅ You are now FULLY INVISIBLE!")
         end)
     end)
 end
 
-function FakeInvisible:Disable()
+function Invisible:Disable()
     self.Active = false
     
     pcall(function()
+        -- Stop update loop
+        if self.UpdateLoop then
+            self.UpdateLoop:Disconnect()
+            self.UpdateLoop = nil
+        end
+        
         -- Remove fake character
         if self.FakeCharacter then
             self.FakeCharacter:Destroy()
             self.FakeCharacter = nil
         end
         
-        -- Restore real character visibility
+        -- Restore real character
         local RealChar = Player.Character
         if RealChar then
-            for _, part in pairs(RealChar:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    if part.Name == "HumanoidRootPart" then
-                        part.Transparency = 1
+            local RealRoot = RealChar:FindFirstChild("HumanoidRootPart")
+            
+            -- Move back to surface
+            if RealRoot and self.OriginalPosition then
+                RealRoot.CFrame = self.OriginalPosition
+            elseif RealRoot then
+                RealRoot.CFrame = CFrame.new(0, 10, 0)
+            end
+            
+            -- Restore visibility
+            task.wait(0.1)
+            for _, obj in pairs(RealChar:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    if obj.Name == "HumanoidRootPart" then
+                        obj.Transparency = 1
                     else
-                        part.Transparency = 0
+                        obj.Transparency = 0
                     end
+                    obj.CanCollide = true
                     
-                    if part.Name == "Head" then
-                        for _, child in pairs(part:GetChildren()) do
+                    if obj.Name == "Head" then
+                        for _, child in pairs(obj:GetChildren()) do
                             if child:IsA("Decal") then
                                 child.Transparency = 0
                             end
                         end
                     end
-                elseif part:IsA("Accessory") then
-                    local Handle = part:FindFirstChild("Handle")
-                    if Handle then
-                        Handle.Transparency = 0
+                elseif obj:IsA("Decal") then
+                    obj.Transparency = 0
+                elseif obj:IsA("Accessory") or obj:IsA("Hat") then
+                    local handle = obj:FindFirstChild("Handle")
+                    if handle then
+                        handle.Transparency = 0
                     end
-                elseif part:IsA("Decal") then
-                    part.Transparency = 0
                 end
             end
         end
         
         -- Restore camera
         Player.CameraMaxZoomDistance = 400
+        Player.CameraMinZoomDistance = 0.5
         
-        print("👻 Fake Invisible: OFF")
+        print("👻 INVISIBLE: DEACTIVATED")
     end)
 end
 
-function FakeInvisible:Toggle()
+function Invisible:Toggle()
     if self.Active then
         self:Disable()
     else
@@ -310,7 +368,7 @@ function FakeInvisible:Toggle()
 end
 
 -- ============================================
--- 🦅 ADVANCED FLY SYSTEM
+-- 🦅 FLY SYSTEM
 -- ============================================
 local FlySystem = {
     Active = false,
@@ -356,7 +414,7 @@ function FlySystem:Start()
                 end)
             end)
             
-            print("🦅 Fly: ON (Auto Noclip)")
+            print("🦅 Fly: ON")
         end)
     end)
 end
@@ -427,7 +485,7 @@ function FlySystem:Toggle()
 end
 
 -- ============================================
--- 📍 WAYPOINT TELEPORT SYSTEM
+-- 📍 WAYPOINT SYSTEM
 -- ============================================
 local WaypointSystem = {
     SavedPosition = nil
@@ -455,7 +513,7 @@ function WaypointSystem:TeleportToSaved()
         local Char = Player.Character
         if Char and Char:FindFirstChild("HumanoidRootPart") then
             Char.HumanoidRootPart.CFrame = self.SavedPosition
-            print("📍 Teleported to saved position!")
+            print("📍 Teleported!")
             return true
         end
     end)
@@ -529,7 +587,7 @@ function ESP:Toggle()
 end
 
 -- ============================================
--- 🚫 NOCLIP SYSTEM
+-- 🚫 NOCLIP
 -- ============================================
 local Noclip = {
     Active = false,
@@ -590,7 +648,7 @@ function Noclip:Toggle()
 end
 
 -- ============================================
--- ⚡ SPEED & JUMP SYSTEMS
+-- ⚡ SPEED & JUMP
 -- ============================================
 local Speed = {
     Active = false,
@@ -609,10 +667,8 @@ function Speed:Toggle()
                 if self.Active then
                     self.OriginalSpeed = Hum.WalkSpeed
                     Hum.WalkSpeed = self.Value
-                    print("⚡ Speed: " .. self.Value)
                 else
                     Hum.WalkSpeed = self.OriginalSpeed
-                    print("⚡ Speed: Normal")
                 end
             end
         end
@@ -639,10 +695,8 @@ function Jump:Toggle()
                     self.OriginalJump = Hum.JumpPower
                     Hum.JumpPower = self.Value
                     Hum.UseJumpPower = true
-                    print("🚀 Jump: " .. self.Value)
                 else
                     Hum.JumpPower = self.OriginalJump
-                    print("🚀 Jump: Normal")
                 end
             end
         end
@@ -652,10 +706,10 @@ function Jump:Toggle()
 end
 
 -- ============================================
--- 🎨 GUI CREATION
+-- 🎨 GUI SYSTEM
 -- ============================================
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "GhostMenuV40"
+Gui.Name = "GhostMenuV45"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.Parent = Player.PlayerGui
@@ -743,7 +797,7 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0.65, 0, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "👻 GHOST MENU v40"
+Title.Text = "👻 GHOST MENU v45"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 22
 Title.Font = Enum.Font.GothamBold
@@ -882,7 +936,7 @@ local function CreateButton(text, icon, color, callback)
     end)
 end
 
--- Special Waypoint Button
+-- Waypoint Button
 local function CreateWaypointButton()
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -12, 0, 100)
@@ -921,7 +975,6 @@ local function CreateWaypointButton()
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = Frame
     
-    -- Save Button
     local SaveBtn = Instance.new("TextButton")
     SaveBtn.Size = UDim2.new(0.45, -10, 0, 40)
     SaveBtn.Position = UDim2.new(0, 10, 1, -48)
@@ -936,12 +989,11 @@ local function CreateWaypointButton()
     SaveCorner.CornerRadius = UDim.new(0, 10)
     SaveCorner.Parent = SaveBtn
     
-    -- Teleport Button
     local TpBtn = Instance.new("TextButton")
     TpBtn.Size = UDim2.new(0.45, -10, 0, 40)
     TpBtn.Position = UDim2.new(0.55, 0, 1, -48)
     TpBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-    TpBtn.Text = "⚡ TELEPORT"
+    TpBtn.Text = "⚡ TP"
     TpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     TpBtn.TextSize = 16
     TpBtn.Font = Enum.Font.GothamBold
@@ -1112,8 +1164,8 @@ CreateButton("God Mode", "👑", Color3.fromRGB(255, 215, 0), function()
     return GodMode:Toggle()
 end)
 
-CreateButton("Fake Invisible (Clone)", "👻", Color3.fromRGB(170, 0, 255), function()
-    return FakeInvisible:Toggle()
+CreateButton("INVISIBLE (4 Methods)", "👻", Color3.fromRGB(170, 0, 255), function()
+    return Invisible:Toggle()
 end)
 
 CreateButton("Fly + Auto Noclip", "🦅", Color3.fromRGB(100, 200, 255), function()
@@ -1122,7 +1174,7 @@ CreateButton("Fly + Auto Noclip", "🦅", Color3.fromRGB(100, 200, 255), functio
     return state
 end)
 
-CreateButton("ESP (See Players)", "👁️", Color3.fromRGB(255, 100, 100), function()
+CreateButton("ESP", "👁️", Color3.fromRGB(255, 100, 100), function()
     return ESP:Toggle()
 end)
 
@@ -1183,11 +1235,11 @@ end)
 
 -- Notification
 local Notif = Instance.new("TextLabel")
-Notif.Size = UDim2.new(0, 350, 0, 50)
-Notif.Position = UDim2.new(0.5, -175, 0, 25)
+Notif.Size = UDim2.new(0, 380, 0, 55)
+Notif.Position = UDim2.new(0.5, -190, 0, 25)
 Notif.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 Notif.BorderSizePixel = 0
-Notif.Text = "✅ GHOST MENU v40 | FAKE CLONE SYSTEM"
+Notif.Text = "✅ GHOST MENU v45 | 4-METHOD INVISIBLE"
 Notif.TextColor3 = Color3.fromRGB(0, 255, 150)
 Notif.TextScaled = true
 Notif.Font = Enum.Font.GothamBold
@@ -1204,17 +1256,20 @@ NotifStroke.Parent = Notif
 
 task.wait(3)
 TweenService:Create(Notif, TweenInfo.new(0.5), {
-    Position = UDim2.new(0.5, -175, 0, -60)
+    Position = UDim2.new(0.5, -190, 0, -70)
 }):Play()
 task.wait(0.5)
 Notif:Destroy()
 
 print("============================================")
-print("👻 GHOST MENU v40.0 - FAKE CHARACTER SYSTEM")
+print("👻 GHOST MENU v45.0 - ULTIMATE INVISIBLE")
 print("============================================")
-print("✅ Fake Character Invisible: Ready")
-print("✅ Waypoint System: Ready")
-print("✅ All Features: Online")
+print("✅ Method 1: Character Clone (Fake Body)")
+print("✅ Method 2: Underground Positioning")
+print("✅ Method 3: Full Transparency")
+print("✅ Method 4: Continuous Update Loop")
+print("============================================")
+print("🎮 Invisible System: 4 Methods Active!")
 print("============================================")
 
 BypassEngine:Initialize()
